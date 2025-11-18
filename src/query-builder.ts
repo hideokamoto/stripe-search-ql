@@ -1,4 +1,10 @@
-import type { FieldClause, LogicalOperator, QueryClause } from "./types.js";
+import type {
+  FieldClause,
+  LogicalOperator,
+  NumericOperator,
+  QueryClause,
+  StringOperator,
+} from "./types.js";
 import { escapeMetadataKey, formatValue } from "./utils.js";
 
 /**
@@ -86,7 +92,10 @@ class FieldBuilder {
    * @param value 値
    * @returns QueryBuilderインスタンス
    */
-  private addClause(operator: string, value: string | number | null): QueryBuilder {
+  private addClause(
+    operator: NumericOperator | StringOperator,
+    value: string | number | null,
+  ): QueryBuilder {
     this.queryBuilder.addFieldClause({
       type: "field",
       field: this.field,
@@ -118,7 +127,10 @@ class MetadataFieldBuilder {
    * @param value 値
    * @returns QueryBuilderインスタンス
    */
-  private addClause(operator: string, value: string | number | null): QueryBuilder {
+  private addClause(
+    operator: NumericOperator | StringOperator,
+    value: string | number | null,
+  ): QueryBuilder {
     const field = `metadata[${escapeMetadataKey(this.key)}]`;
     return this.queryBuilder.addFieldClause({
       type: "field",
@@ -257,7 +269,7 @@ export class QueryBuilder {
 
     const parts: string[] = [];
     let lastWasLogical = false;
-    let isFirstClause = true;
+    let hasFieldClause = false;
 
     for (const clause of this.clauses) {
       if (clause.type === "field") {
@@ -265,10 +277,10 @@ export class QueryBuilder {
         const value = formatValue(clause.value);
         parts.push(`${prefix}${clause.field}${clause.operator}${value}`);
         lastWasLogical = false;
-        isFirstClause = false;
+        hasFieldClause = true;
       } else if (clause.type === "logical") {
-        // 先頭の論理演算子は無視する
-        if (isFirstClause) {
+        // 先頭の論理演算子は無視する（フィールド句がまだ追加されていない場合）
+        if (!hasFieldClause) {
           continue;
         }
         // 連続する論理演算子を防ぐ

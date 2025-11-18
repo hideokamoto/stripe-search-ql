@@ -102,6 +102,47 @@ describe("QueryBuilder", () => {
 
       expect(query).toBe('status:"active" AND amount:500 AND currency:"usd"');
     });
+
+    it("複数のOR条件を結合できる", () => {
+      const query = stripeSearch()
+        .field("status")
+        .equals("pending")
+        .or()
+        .field("status")
+        .equals("failed")
+        .or()
+        .field("status")
+        .equals("canceled")
+        .build();
+
+      expect(query).toBe('status:"pending" OR status:"failed" OR status:"canceled"');
+    });
+
+    it("連続する論理演算子は1つだけ使用される", () => {
+      const query = stripeSearch()
+        .field("a")
+        .equals(1)
+        .and()
+        .and()
+        .field("b")
+        .equals(2)
+        .build();
+
+      expect(query).toBe("a:1 AND b:2");
+    });
+
+    it("末尾の論理演算子は無視される", () => {
+      const query = stripeSearch()
+        .field("a")
+        .equals(1)
+        .and()
+        .field("b")
+        .equals(2)
+        .and()
+        .build();
+
+      expect(query).toBe("a:1 AND b:2");
+    });
   });
 
   describe("メタデータ検索", () => {
@@ -200,8 +241,8 @@ describe("QueryBuilder", () => {
     });
   });
 
-  describe("論理演算子の先頭バグ", () => {
-    it("論理演算子が先頭に来る場合は無視される", () => {
+  describe("論理演算子の先頭処理", () => {
+    it("AND演算子が先頭に来る場合は無視される", () => {
       const query = stripeSearch().and().field("a").equals(1).build();
       expect(query).toBe("a:1");
     });
@@ -210,10 +251,75 @@ describe("QueryBuilder", () => {
       const query = stripeSearch().or().field("a").equals(1).build();
       expect(query).toBe("a:1");
     });
+
+    it("複数のAND演算子が先頭に来る場合は全て無視される", () => {
+      const query = stripeSearch()
+        .and()
+        .and()
+        .field("a")
+        .equals(1)
+        .build();
+      expect(query).toBe("a:1");
+    });
+
+    it("複数のOR演算子が先頭に来る場合は全て無視される", () => {
+      const query = stripeSearch()
+        .or()
+        .or()
+        .field("a")
+        .equals(1)
+        .build();
+      expect(query).toBe("a:1");
+    });
+
+    it("先頭のAND演算子の後にフィールド句とAND演算子が続く場合、先頭のANDのみ無視される", () => {
+      const query = stripeSearch()
+        .and()
+        .field("a")
+        .equals(1)
+        .and()
+        .field("b")
+        .equals(2)
+        .build();
+      expect(query).toBe("a:1 AND b:2");
+    });
+
+    it("先頭のOR演算子の後にフィールド句とOR演算子が続く場合、先頭のORのみ無視される", () => {
+      const query = stripeSearch()
+        .or()
+        .field("a")
+        .equals(1)
+        .or()
+        .field("b")
+        .equals(2)
+        .build();
+      expect(query).toBe("a:1 OR b:2");
+    });
+
+    it("論理演算子のみのクエリは空文字列を返す", () => {
+      const query = stripeSearch().and().build();
+      expect(query).toBe("");
+    });
+
+    it("複数のAND演算子のみのクエリは空文字列を返す", () => {
+      const query = stripeSearch().and().and().build();
+      expect(query).toBe("");
+    });
+
+    it("複数のOR演算子のみのクエリは空文字列を返す", () => {
+      const query = stripeSearch().or().or().build();
+      expect(query).toBe("");
+    });
+
+    it("論理演算子のみのクエリでもANDとORの混在はエラーになる", () => {
+      expect(() => {
+        stripeSearch().and().or().build();
+      }).toThrow("Cannot mix AND and OR operators in a single query");
+    });
   });
 
   describe("ANDとORの混在防止", () => {
-    it("ANDの後にORを追加しようとするとエラーになる", () => {
+    it("フィールド句の後にANDを追加し、その後にORを追加しようとするとエラーになる", () => {
       expect(() => {
         stripeSearch()
           .field("a")
@@ -227,7 +333,7 @@ describe("QueryBuilder", () => {
       }).toThrow("Cannot mix AND and OR operators in a single query");
     });
 
-    it("ORの後にANDを追加しようとするとエラーになる", () => {
+    it("フィールド句の後にORを追加し、その後にANDを追加しようとするとエラーになる", () => {
       expect(() => {
         stripeSearch()
           .field("a")
@@ -238,6 +344,64 @@ describe("QueryBuilder", () => {
           .and()
           .field("c")
           .equals(3);
+      }).toThrow("Cannot mix AND and OR operators in a single query");
+    });
+
+    it("先頭にANDを追加し、その後にフィールド句とORを追加しようとするとエラーになる", () => {
+      expect(() => {
+        stripeSearch()
+          .and()
+          .field("a")
+          .equals(1)
+          .or()
+          .field("b")
+          .equals(2);
+      }).toThrow("Cannot mix AND and OR operators in a single query");
+    });
+
+    it("先頭にORを追加し、その後にフィールド句とANDを追加しようとするとエラーになる", () => {
+      expect(() => {
+        stripeSearch()
+          .or()
+          .field("a")
+          .equals(1)
+          .and()
+          .field("b")
+          .equals(2);
+      }).toThrow("Cannot mix AND and OR operators in a single query");
+    });
+
+    it("複数のANDの後にORを追加しようとするとエラーになる", () => {
+      expect(() => {
+        stripeSearch()
+          .field("a")
+          .equals(1)
+          .and()
+          .field("b")
+          .equals(2)
+          .and()
+          .field("c")
+          .equals(3)
+          .or()
+          .field("d")
+          .equals(4);
+      }).toThrow("Cannot mix AND and OR operators in a single query");
+    });
+
+    it("複数のORの後にANDを追加しようとするとエラーになる", () => {
+      expect(() => {
+        stripeSearch()
+          .field("a")
+          .equals(1)
+          .or()
+          .field("b")
+          .equals(2)
+          .or()
+          .field("c")
+          .equals(3)
+          .and()
+          .field("d")
+          .equals(4);
       }).toThrow("Cannot mix AND and OR operators in a single query");
     });
 
@@ -251,6 +415,19 @@ describe("QueryBuilder", () => {
       builder.reset();
       const query = builder.field("a").equals(1).or().field("b").equals(2).build();
       expect(query).toBe('a:1 OR b:2');
+    });
+
+    it("reset後、論理演算子の状態がリセットされる", () => {
+      const builder = stripeSearch()
+        .field("a")
+        .equals(1)
+        .and()
+        .field("b")
+        .equals(2);
+      builder.reset();
+      // reset後はANDも使用できる
+      const query = builder.field("a").equals(1).and().field("b").equals(2).build();
+      expect(query).toBe("a:1 AND b:2");
     });
   });
 });
