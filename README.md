@@ -13,24 +13,24 @@ npm install stripe-search-ql
 ### Basic Examples
 
 ```typescript
-import { stripeSearch } from "stripe-search-ql";
+import { stripeQuery } from "stripe-search-ql";
 
 // Exact match search
-const query = stripeSearch()
+const query = stripeQuery()
   .field("email")
   .equals("amy@rocketrides.io")
   .build();
 // => 'email:"amy@rocketrides.io"'
 
 // Numeric comparison
-const amountQuery = stripeSearch()
+const amountQuery = stripeQuery()
   .field("amount")
   .greaterThan(1000)
   .build();
 // => 'amount>1000'
 
 // Substring match
-const substringQuery = stripeSearch()
+const substringQuery = stripeQuery()
   .field("email")
   .contains("amy")
   .build();
@@ -41,7 +41,7 @@ const substringQuery = stripeSearch()
 
 ```typescript
 // AND operator
-const andQuery = stripeSearch()
+const andQuery = stripeQuery()
   .field("email")
   .equals("amy@rocketrides.io")
   .and()
@@ -51,7 +51,7 @@ const andQuery = stripeSearch()
 // => 'email:"amy@rocketrides.io" AND currency:"usd"'
 
 // OR operator
-const orQuery = stripeSearch()
+const orQuery = stripeQuery()
   .field("currency")
   .equals("usd")
   .or()
@@ -65,14 +65,14 @@ const orQuery = stripeSearch()
 
 ```typescript
 // Exact match for metadata
-const metadataQuery = stripeSearch()
+const metadataQuery = stripeQuery()
   .metadata("donation-id")
   .equals("asdf-jkl")
   .build();
 // => 'metadata["donation-id"]:"asdf-jkl"'
 
 // Substring match for metadata
-const metadataSubstringQuery = stripeSearch()
+const metadataSubstringQuery = stripeQuery()
   .metadata("key")
   .contains("value")
   .build();
@@ -83,14 +83,14 @@ const metadataSubstringQuery = stripeSearch()
 
 ```typescript
 // Field negation
-const negatedQuery = stripeSearch()
+const negatedQuery = stripeQuery()
   .not("currency")
   .equals("jpy")
   .build();
 // => '-currency:"jpy"'
 
 // Metadata negation
-const negatedMetadataQuery = stripeSearch()
+const negatedMetadataQuery = stripeQuery()
   .notMetadata("donation-id")
   .equals("asdf-jkl")
   .build();
@@ -101,14 +101,14 @@ const negatedMetadataQuery = stripeSearch()
 
 ```typescript
 // Check if field is NULL
-const nullCheckQuery = stripeSearch()
+const nullCheckQuery = stripeQuery()
   .field("url")
   .isNull()
   .build();
 // => 'url:null'
 
 // Check if metadata key does not exist
-const metadataNullQuery = stripeSearch()
+const metadataNullQuery = stripeQuery()
   .notMetadata("donation-id")
   .isNull()
   .build();
@@ -119,19 +119,19 @@ const metadataNullQuery = stripeSearch()
 
 ```typescript
 // Greater than
-stripeSearch().field("amount").greaterThan(1000).build();
+stripeQuery().field("amount").greaterThan(1000).build();
 // => 'amount>1000'
 
 // Less than
-stripeSearch().field("amount").lessThan(1000).build();
+stripeQuery().field("amount").lessThan(1000).build();
 // => 'amount<1000'
 
 // Greater than or equal
-stripeSearch().field("amount").greaterThanOrEqual(1000).build();
+stripeQuery().field("amount").greaterThanOrEqual(1000).build();
 // => 'amount>=1000'
 
 // Less than or equal
-stripeSearch().field("amount").lessThanOrEqual(1000).build();
+stripeQuery().field("amount").lessThanOrEqual(1000).build();
 // => 'amount<=1000'
 ```
 
@@ -139,7 +139,7 @@ stripeSearch().field("amount").lessThanOrEqual(1000).build();
 
 ```typescript
 // Combining multiple conditions
-const complexQuery = stripeSearch()
+const complexQuery = stripeQuery()
   .field("email")
   .equals("amy@rocketrides.io")
   .and()
@@ -154,13 +154,13 @@ const complexQuery = stripeSearch()
 
 ## API Reference
 
-### `stripeSearch()`
+### `stripeQuery()`
 
 Creates a new query builder instance.
 
-**Returns**: `QueryBuilder` instance
+**Returns**: `SearchQueryBuilder` instance
 
-### `QueryBuilder`
+### `SearchQueryBuilder`
 
 #### Field Search
 
@@ -174,42 +174,42 @@ Creates a new query builder instance.
 
 #### Logical Operators
 
-- `and(): QueryBuilder` - Add AND operator
-- `or(): QueryBuilder` - Add OR operator
+- `and(): SearchQueryBuilder` - Add AND operator
+- `or(): SearchQueryBuilder` - Add OR operator
 
 #### Others
 
 - `build(): string` - Returns the constructed query as a string
-- `reset(): QueryBuilder` - Reset the query
+- `reset(): SearchQueryBuilder` - Reset the query
 
 ### `FieldBuilder`
 
-- `equals(value: string | number | null): QueryBuilder` - Exact match (`:`)
-- `contains(value: string): QueryBuilder` - Substring match (`~`, minimum 3 characters)
-- `greaterThan(value: number): QueryBuilder` - Greater than (`>`)
-- `lessThan(value: number): QueryBuilder` - Less than (`<`)
-- `greaterThanOrEqual(value: number): QueryBuilder` - Greater than or equal (`>=`)
-- `lessThanOrEqual(value: number): QueryBuilder` - Less than or equal (`<=`)
-- `isNull(): QueryBuilder` - NULL value check
+- `equals(value: string | number | null): SearchQueryBuilder` - Exact match (`:`)
+- `contains(value: string): SearchQueryBuilder` - Substring match (`~`, minimum 3 characters)
+- `greaterThan(value: number): SearchQueryBuilder` - Greater than (`>`)
+- `lessThan(value: number): SearchQueryBuilder` - Less than (`<`)
+- `greaterThanOrEqual(value: number): SearchQueryBuilder` - Greater than or equal (`>=`)
+- `lessThanOrEqual(value: number): SearchQueryBuilder` - Less than or equal (`<=`)
+- `isNull(): SearchQueryBuilder` - NULL value check
 
 ### `MetadataFieldBuilder`
 
-- `equals(value: string | number | null): QueryBuilder` - Exact match (`:`)
-- `contains(value: string): QueryBuilder` - Substring match (`~`, minimum 3 characters)
-- `isNull(): QueryBuilder` - NULL value check (when metadata key does not exist)
+- `equals(value: string | number | null): SearchQueryBuilder` - Exact match (`:`)
+- `contains(value: string): SearchQueryBuilder` - Substring match (`~`, minimum 3 characters)
+- `isNull(): SearchQueryBuilder` - NULL value check (when metadata key does not exist)
 
 ## Integration with Stripe Search API
 
 The constructed query can be used with the Stripe SDK or API client.
 
 ```typescript
-import { stripeSearch } from "stripe-search-ql";
+import { stripeQuery } from "stripe-search-ql";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 // Build query
-const query = stripeSearch()
+const query = stripeQuery()
   .field("email")
   .equals("customer@example.com")
   .build();

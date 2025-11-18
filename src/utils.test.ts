@@ -3,39 +3,39 @@ import { escapeMetadataKey, escapeStringValue, formatValue } from "./utils.js";
 
 describe("utils", () => {
   describe("escapeStringValue", () => {
-    it("通常の文字列をエスケープできる", () => {
+    it("should escape a normal string", () => {
       expect(escapeStringValue("test")).toBe('"test"');
     });
 
-    it("引用符を含む文字列をエスケープできる", () => {
+    it("should escape a string containing quotes", () => {
       expect(escapeStringValue('test"value')).toBe('"test\\"value"');
     });
 
-    it("バックスラッシュを含む文字列をエスケープできる", () => {
+    it("should escape a string containing backslashes", () => {
       expect(escapeStringValue("test\\value")).toBe('"test\\\\value"');
     });
   });
 
   describe("escapeMetadataKey", () => {
-    it("通常のキーをエスケープできる", () => {
+    it("should escape a normal key", () => {
       expect(escapeMetadataKey("test")).toBe('"test"');
     });
 
-    it("引用符を含むキーをエスケープできる", () => {
+    it("should escape a key containing quotes", () => {
       expect(escapeMetadataKey('test"key')).toBe('"test\\"key"');
     });
   });
 
   describe("formatValue", () => {
-    it("文字列値をフォーマットできる", () => {
+    it("should format a string value", () => {
       expect(formatValue("test")).toBe('"test"');
     });
 
-    it("数値をフォーマットできる", () => {
+    it("should format a numeric value", () => {
       expect(formatValue(1000)).toBe("1000");
     });
 
-    it("NULL値をフォーマットできる", () => {
+    it("should format a NULL value", () => {
       expect(formatValue(null)).toBe("null");
     });
   });

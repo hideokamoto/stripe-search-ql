@@ -8,34 +8,34 @@ import type {
 import { escapeMetadataKey, formatValue } from "./utils.js";
 
 /**
- * フィールド句を構築するためのビルダー
+ * Builder for constructing field clauses
  */
 class FieldBuilder {
   private field: string;
   private negated: boolean;
-  private queryBuilder: QueryBuilder;
+  private queryBuilder: SearchQueryBuilder;
 
-  constructor(field: string, negated: boolean, queryBuilder: QueryBuilder) {
+  constructor(field: string, negated: boolean, queryBuilder: SearchQueryBuilder) {
     this.field = field;
     this.negated = negated;
     this.queryBuilder = queryBuilder;
   }
 
   /**
-   * 完全一致演算子 (`:`)
-   * @param value 検索値
-   * @returns QueryBuilderインスタンス
+   * Exact match operator (`:`)
+   * @param value Search value
+   * @returns SearchQueryBuilder instance
    */
-  equals(value: string | number | null): QueryBuilder {
+  equals(value: string | number | null): SearchQueryBuilder {
     return this.addClause(":", value);
   }
 
   /**
-   * 部分文字列マッチ演算子 (`~`)
-   * @param value 検索値（最小3文字）
-   * @returns QueryBuilderインスタンス
+   * Substring match operator (`~`)
+   * @param value Search value (minimum 3 characters)
+   * @returns SearchQueryBuilder instance
    */
-  contains(value: string): QueryBuilder {
+  contains(value: string): SearchQueryBuilder {
     if (value.length < 3) {
       throw new Error("Substring match requires at least 3 characters");
     }
@@ -43,59 +43,59 @@ class FieldBuilder {
   }
 
   /**
-   * より大きい演算子 (`>`)
-   * @param value 比較値
-   * @returns QueryBuilderインスタンス
+   * Greater than operator (`>`)
+   * @param value Comparison value
+   * @returns SearchQueryBuilder instance
    */
-  greaterThan(value: number): QueryBuilder {
+  greaterThan(value: number): SearchQueryBuilder {
     return this.addClause(">", value);
   }
 
   /**
-   * より小さい演算子 (`<`)
-   * @param value 比較値
-   * @returns QueryBuilderインスタンス
+   * Less than operator (`<`)
+   * @param value Comparison value
+   * @returns SearchQueryBuilder instance
    */
-  lessThan(value: number): QueryBuilder {
+  lessThan(value: number): SearchQueryBuilder {
     return this.addClause("<", value);
   }
 
   /**
-   * 以上演算子 (`>=`)
-   * @param value 比較値
-   * @returns QueryBuilderインスタンス
+   * Greater than or equal operator (`>=`)
+   * @param value Comparison value
+   * @returns SearchQueryBuilder instance
    */
-  greaterThanOrEqual(value: number): QueryBuilder {
+  greaterThanOrEqual(value: number): SearchQueryBuilder {
     return this.addClause(">=", value);
   }
 
   /**
-   * 以下演算子 (`<=`)
-   * @param value 比較値
-   * @returns QueryBuilderインスタンス
+   * Less than or equal operator (`<=`)
+   * @param value Comparison value
+   * @returns SearchQueryBuilder instance
    */
-  lessThanOrEqual(value: number): QueryBuilder {
+  lessThanOrEqual(value: number): SearchQueryBuilder {
     return this.addClause("<=", value);
   }
 
   /**
-   * NULL値チェック（フィールドが存在しない、または空の場合）
-   * @returns QueryBuilderインスタンス
+   * NULL value check (when field does not exist or is empty)
+   * @returns SearchQueryBuilder instance
    */
-  isNull(): QueryBuilder {
+  isNull(): SearchQueryBuilder {
     return this.addClause(":", null);
   }
 
   /**
-   * 否定のフィールド句を追加
-   * @param operator 演算子
-   * @param value 値
-   * @returns QueryBuilderインスタンス
+   * Add a negated field clause
+   * @param operator Operator
+   * @param value Value
+   * @returns SearchQueryBuilder instance
    */
   private addClause(
     operator: NumericOperator | StringOperator,
     value: string | number | null
-  ): QueryBuilder {
+  ): SearchQueryBuilder {
     this.queryBuilder.addFieldClause({
       type: "field",
       field: this.field,
@@ -108,26 +108,26 @@ class FieldBuilder {
 }
 
 /**
- * メタデータフィールドビルダー
+ * Metadata field builder
  */
 class MetadataFieldBuilder {
   private key: string;
   private negated: boolean;
-  private queryBuilder: QueryBuilder;
+  private queryBuilder: SearchQueryBuilder;
 
-  constructor(key: string, negated: boolean, queryBuilder: QueryBuilder) {
+  constructor(key: string, negated: boolean, queryBuilder: SearchQueryBuilder) {
     this.key = key;
     this.negated = negated;
     this.queryBuilder = queryBuilder;
   }
 
   /**
-   * フィールド句を追加する
-   * @param operator 演算子
-   * @param value 値
-   * @returns QueryBuilderインスタンス
+   * Add a field clause
+   * @param operator Operator
+   * @param value Value
+   * @returns SearchQueryBuilder instance
    */
-  private addClause(operator: StringOperator, value: string | number | null): QueryBuilder {
+  private addClause(operator: StringOperator, value: string | number | null): SearchQueryBuilder {
     const field = `metadata[${escapeMetadataKey(this.key)}]`;
     return this.queryBuilder.addFieldClause({
       type: "field",
@@ -139,20 +139,20 @@ class MetadataFieldBuilder {
   }
 
   /**
-   * 完全一致演算子 (`:`)
-   * @param value 検索値
-   * @returns QueryBuilderインスタンス
+   * Exact match operator (`:`)
+   * @param value Search value
+   * @returns SearchQueryBuilder instance
    */
-  equals(value: string | number | null): QueryBuilder {
+  equals(value: string | number | null): SearchQueryBuilder {
     return this.addClause(":", value);
   }
 
   /**
-   * 部分文字列マッチ演算子 (`~`)
-   * @param value 検索値（最小3文字）
-   * @returns QueryBuilderインスタンス
+   * Substring match operator (`~`)
+   * @param value Search value (minimum 3 characters)
+   * @returns SearchQueryBuilder instance
    */
-  contains(value: string): QueryBuilder {
+  contains(value: string): SearchQueryBuilder {
     if (value.length < 3) {
       throw new Error("Substring match requires at least 3 characters");
     }
@@ -160,73 +160,73 @@ class MetadataFieldBuilder {
   }
 
   /**
-   * NULL値チェック（メタデータキーが存在しない場合）
-   * @returns QueryBuilderインスタンス
+   * NULL value check (when metadata key does not exist)
+   * @returns SearchQueryBuilder instance
    */
-  isNull(): QueryBuilder {
+  isNull(): SearchQueryBuilder {
     return this.addClause(":", null);
   }
 }
 
 /**
- * Stripe Search APIのクエリを構築するビルダークラス
+ * Builder class for constructing Stripe Search API queries
  */
-export class QueryBuilder {
+export class SearchQueryBuilder {
   private clauses: QueryClause[] = [];
   private logicalOperator: LogicalOperator | null = null;
 
   /**
-   * フィールド句を追加
-   * @param clause フィールド句
-   * @returns QueryBuilderインスタンス
+   * Add a field clause
+   * @param clause Field clause
+   * @returns SearchQueryBuilder instance
    */
-  addFieldClause(clause: FieldClause): QueryBuilder {
+  addFieldClause(clause: FieldClause): SearchQueryBuilder {
     this.clauses.push(clause);
     return this;
   }
 
   /**
-   * フィールドを指定して検索条件を構築
-   * @param field フィールド名
-   * @returns FieldBuilderインスタンス
+   * Specify a field to build search conditions
+   * @param field Field name
+   * @returns FieldBuilder instance
    */
   field(field: string): FieldBuilder {
     return new FieldBuilder(field, false, this);
   }
 
   /**
-   * 否定のフィールドを指定して検索条件を構築
-   * @param field フィールド名
-   * @returns FieldBuilderインスタンス
+   * Specify a negated field to build search conditions
+   * @param field Field name
+   * @returns FieldBuilder instance
    */
   not(field: string): FieldBuilder {
     return new FieldBuilder(field, true, this);
   }
 
   /**
-   * メタデータフィールドを指定して検索条件を構築
-   * @param key メタデータキー
-   * @returns MetadataFieldBuilderインスタンス
+   * Specify a metadata field to build search conditions
+   * @param key Metadata key
+   * @returns MetadataFieldBuilder instance
    */
   metadata(key: string): MetadataFieldBuilder {
     return new MetadataFieldBuilder(key, false, this);
   }
 
   /**
-   * 否定のメタデータフィールドを指定して検索条件を構築
-   * @param key メタデータキー
-   * @returns MetadataFieldBuilderインスタンス
+   * Specify a negated metadata field to build search conditions
+   * @param key Metadata key
+   * @returns MetadataFieldBuilder instance
    */
   notMetadata(key: string): MetadataFieldBuilder {
     return new MetadataFieldBuilder(key, true, this);
   }
 
   /**
-   * AND演算子を追加
-   * @returns QueryBuilderインスタンス
-   * @throws {Error} OR演算子が既に使用されている場合
+   * Add AND operator
+   * @returns SearchQueryBuilder instance
+   * @throws {Error} When OR operator is already used
    */
-  and(): QueryBuilder {
+  and(): SearchQueryBuilder {
     if (this.logicalOperator === "OR") {
       throw new Error("Cannot mix AND and OR operators in a single query");
     }
@@ -239,11 +239,11 @@ export class QueryBuilder {
   }
 
   /**
-   * OR演算子を追加
-   * @returns QueryBuilderインスタンス
-   * @throws {Error} AND演算子が既に使用されている場合
+   * Add OR operator
+   * @returns SearchQueryBuilder instance
+   * @throws {Error} When AND operator is already used
    */
-  or(): QueryBuilder {
+  or(): SearchQueryBuilder {
     if (this.logicalOperator === "AND") {
       throw new Error("Cannot mix AND and OR operators in a single query");
     }
@@ -256,8 +256,8 @@ export class QueryBuilder {
   }
 
   /**
-   * 構築したクエリを文字列として返す
-   * @returns クエリ文字列
+   * Return the constructed query as a string
+   * @returns Query string
    */
   build(): string {
     if (this.clauses.length === 0) {
@@ -276,11 +276,11 @@ export class QueryBuilder {
         lastWasLogical = false;
         hasFieldClause = true;
       } else if (clause.type === "logical") {
-        // 先頭の論理演算子は無視する（フィールド句がまだ追加されていない場合）
+        // Ignore leading logical operators (when no field clause has been added yet)
         if (!hasFieldClause) {
           continue;
         }
-        // 連続する論理演算子を防ぐ
+        // Prevent consecutive logical operators
         if (!lastWasLogical) {
           parts.push(clause.operator);
           lastWasLogical = true;
@@ -288,7 +288,7 @@ export class QueryBuilder {
       }
     }
 
-    // 末尾の論理演算子を削除
+    // Remove trailing logical operator
     if (lastWasLogical) {
       parts.pop();
     }
@@ -297,10 +297,10 @@ export class QueryBuilder {
   }
 
   /**
-   * クエリをリセット
-   * @returns QueryBuilderインスタンス
+   * Reset the query
+   * @returns SearchQueryBuilder instance
    */
-  reset(): QueryBuilder {
+  reset(): SearchQueryBuilder {
     this.clauses = [];
     this.logicalOperator = null;
     return this;
@@ -308,9 +308,9 @@ export class QueryBuilder {
 }
 
 /**
- * Stripe Search APIのクエリビルダーを作成するファクトリー関数
- * @returns QueryBuilderインスタンス
+ * Factory function to create a Stripe Search API query builder
+ * @returns SearchQueryBuilder instance
  */
-export function stripeSearch(): QueryBuilder {
-  return new QueryBuilder();
+export function stripeQuery(): SearchQueryBuilder {
+  return new SearchQueryBuilder();
 }
