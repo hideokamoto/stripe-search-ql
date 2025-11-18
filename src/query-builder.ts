@@ -1,4 +1,4 @@
-import type { LogicalOperator, NumericOperator, QueryClause } from "./types.js";
+import type { FieldClause, LogicalOperator, QueryClause } from "./types.js";
 import { escapeMetadataKey, formatValue } from "./utils.js";
 
 /**
@@ -113,19 +113,36 @@ class MetadataFieldBuilder {
   }
 
   /**
+   * メタデータフィールド名を構築する
+   * @returns メタデータフィールド名
+   */
+  private buildFieldName(): string {
+    return `metadata[${escapeMetadataKey(this.key)}]`;
+  }
+
+  /**
+   * フィールド句を追加する
+   * @param operator 演算子
+   * @param value 値
+   * @returns QueryBuilderインスタンス
+   */
+  private addClause(operator: string, value: string | number | null): QueryBuilder {
+    return this.queryBuilder.addFieldClause({
+      type: "field",
+      field: this.buildFieldName(),
+      operator,
+      value,
+      negated: this.negated,
+    });
+  }
+
+  /**
    * 完全一致演算子 (`:`)
    * @param value 検索値
    * @returns QueryBuilderインスタンス
    */
   equals(value: string | number | null): QueryBuilder {
-    const field = `metadata[${escapeMetadataKey(this.key)}]`;
-    return this.queryBuilder.addFieldClause({
-      type: "field",
-      field,
-      operator: ":",
-      value,
-      negated: this.negated,
-    });
+    return this.addClause(":", value);
   }
 
   /**
@@ -137,14 +154,7 @@ class MetadataFieldBuilder {
     if (value.length < 3) {
       throw new Error("Substring match requires at least 3 characters");
     }
-    const field = `metadata[${escapeMetadataKey(this.key)}]`;
-    return this.queryBuilder.addFieldClause({
-      type: "field",
-      field,
-      operator: "~",
-      value,
-      negated: this.negated,
-    });
+    return this.addClause("~", value);
   }
 
   /**
@@ -152,14 +162,7 @@ class MetadataFieldBuilder {
    * @returns QueryBuilderインスタンス
    */
   isNull(): QueryBuilder {
-    const field = `metadata[${escapeMetadataKey(this.key)}]`;
-    return this.queryBuilder.addFieldClause({
-      type: "field",
-      field,
-      operator: ":",
-      value: null,
-      negated: this.negated,
-    });
+    return this.addClause(":", null);
   }
 }
 
@@ -168,13 +171,14 @@ class MetadataFieldBuilder {
  */
 export class QueryBuilder {
   private clauses: QueryClause[] = [];
+  private logicalOperator: LogicalOperator | null = null;
 
   /**
    * フィールド句を追加
    * @param clause フィールド句
    * @returns QueryBuilderインスタンス
    */
-  addFieldClause(clause: QueryClause): QueryBuilder {
+  addFieldClause(clause: FieldClause): QueryBuilder {
     this.clauses.push(clause);
     return this;
   }
@@ -218,8 +222,13 @@ export class QueryBuilder {
   /**
    * AND演算子を追加
    * @returns QueryBuilderインスタンス
+   * @throws {Error} OR演算子が既に使用されている場合
    */
   and(): QueryBuilder {
+    if (this.logicalOperator === "OR") {
+      throw new Error("Cannot mix AND and OR operators in a single query");
+    }
+    this.logicalOperator = "AND";
     this.clauses.push({
       type: "logical",
       operator: "AND",
@@ -230,8 +239,13 @@ export class QueryBuilder {
   /**
    * OR演算子を追加
    * @returns QueryBuilderインスタンス
+   * @throws {Error} AND演算子が既に使用されている場合
    */
   or(): QueryBuilder {
+    if (this.logicalOperator === "AND") {
+      throw new Error("Cannot mix AND and OR operators in a single query");
+    }
+    this.logicalOperator = "OR";
     this.clauses.push({
       type: "logical",
       operator: "OR",
@@ -250,6 +264,7 @@ export class QueryBuilder {
 
     const parts: string[] = [];
     let lastWasLogical = false;
+    let isFirstClause = true;
 
     for (const clause of this.clauses) {
       if (clause.type === "field") {
@@ -257,7 +272,12 @@ export class QueryBuilder {
         const value = formatValue(clause.value);
         parts.push(`${prefix}${clause.field}${clause.operator}${value}`);
         lastWasLogical = false;
+        isFirstClause = false;
       } else if (clause.type === "logical") {
+        // 先頭の論理演算子は無視する
+        if (isFirstClause) {
+          continue;
+        }
         // 連続する論理演算子を防ぐ
         if (!lastWasLogical) {
           parts.push(clause.operator);
@@ -280,6 +300,7 @@ export class QueryBuilder {
    */
   reset(): QueryBuilder {
     this.clauses = [];
+    this.logicalOperator = null;
     return this;
   }
 }

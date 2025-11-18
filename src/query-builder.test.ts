@@ -199,6 +199,60 @@ describe("QueryBuilder", () => {
       expect(builder.build()).toBe("");
     });
   });
+
+  describe("論理演算子の先頭バグ", () => {
+    it("論理演算子が先頭に来る場合は無視される", () => {
+      const query = stripeSearch().and().field("a").equals(1).build();
+      expect(query).toBe("a:1");
+    });
+
+    it("OR演算子が先頭に来る場合は無視される", () => {
+      const query = stripeSearch().or().field("a").equals(1).build();
+      expect(query).toBe("a:1");
+    });
+  });
+
+  describe("ANDとORの混在防止", () => {
+    it("ANDの後にORを追加しようとするとエラーになる", () => {
+      expect(() => {
+        stripeSearch()
+          .field("a")
+          .equals(1)
+          .and()
+          .field("b")
+          .equals(2)
+          .or()
+          .field("c")
+          .equals(3);
+      }).toThrow("Cannot mix AND and OR operators in a single query");
+    });
+
+    it("ORの後にANDを追加しようとするとエラーになる", () => {
+      expect(() => {
+        stripeSearch()
+          .field("a")
+          .equals(1)
+          .or()
+          .field("b")
+          .equals(2)
+          .and()
+          .field("c")
+          .equals(3);
+      }).toThrow("Cannot mix AND and OR operators in a single query");
+    });
+
+    it("reset後に異なる論理演算子を使用できる", () => {
+      const builder = stripeSearch()
+        .field("a")
+        .equals(1)
+        .and()
+        .field("b")
+        .equals(2);
+      builder.reset();
+      const query = builder.field("a").equals(1).or().field("b").equals(2).build();
+      expect(query).toBe('a:1 OR b:2');
+    });
+  });
 });
 
 describe("utils", () => {

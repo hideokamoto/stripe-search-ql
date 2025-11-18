@@ -35,11 +35,3 @@ export function formatValue(value: string | number | null): string {
   return escapeStringValue(value);
 }
 
-/**
- * フィールド名をフォーマットする
- * @param field フィールド名
- * @returns フォーマットされたフィールド名
- */
-export function formatField(field: string): string {
-  return field;
-}
