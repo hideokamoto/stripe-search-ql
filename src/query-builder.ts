@@ -314,4 +314,3 @@ export class SearchQueryBuilder {
 export function stripeQuery(): SearchQueryBuilder {
   return new SearchQueryBuilder();
 }
-
