@@ -1,12 +1,21 @@
 /**
+ * 文字列をエスケープして引用符で囲む共通関数
+ * @param value エスケープする文字列
+ * @returns エスケープされた文字列（引用符で囲まれた）
+ */
+function escapeAndQuote(value: string): string {
+  // バックスラッシュとダブルクォートをエスケープ
+  const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return `"${escaped}"`;
+}
+
+/**
  * 文字列値をエスケープして引用符で囲む
  * @param value エスケープする文字列値
  * @returns エスケープされた文字列値
  */
 export function escapeStringValue(value: string): string {
-  // 引用符内の引用符をエスケープ
-  const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-  return `"${escaped}"`;
+  return escapeAndQuote(value);
 }
 
 /**
@@ -15,9 +24,7 @@ export function escapeStringValue(value: string): string {
  * @returns エスケープされたメタデータキー
  */
 export function escapeMetadataKey(key: string): string {
-  // メタデータキー内の引用符をエスケープ
-  const escaped = key.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-  return `"${escaped}"`;
+  return escapeAndQuote(key);
 }
 
 /**

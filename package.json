@@ -25,7 +25,7 @@
     "typecheck": "tsc --noEmit"
   },
   "keywords": ["stripe", "search", "query", "builder", "typescript"],
-  "author": "",
+  "author": "Hidetaka Okamoto <info@wp-kyoto.net>",
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
