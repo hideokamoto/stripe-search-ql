@@ -128,7 +128,7 @@ class MetadataFieldBuilder {
    * @returns QueryBuilderインスタンス
    */
   private addClause(
-    operator: NumericOperator | StringOperator,
+    operator: StringOperator,
     value: string | number | null,
   ): QueryBuilder {
     const field = `metadata[${escapeMetadataKey(this.key)}]`;
