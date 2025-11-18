@@ -9,12 +9,22 @@ export type LogicalOperator = "AND" | "OR";
 export type ClauseType = "field" | "logical";
 
 /**
+ * 数値演算子
+ */
+export type NumericOperator = ">" | "<" | ">=" | "<=";
+
+/**
+ * 文字列演算子
+ */
+export type StringOperator = ":" | "~";
+
+/**
  * フィールド句の情報
  */
 export interface FieldClause {
   type: "field";
   field: string;
-  operator: string;
+  operator: NumericOperator | StringOperator;
   value: string | number | null;
   negated: boolean;
 }
