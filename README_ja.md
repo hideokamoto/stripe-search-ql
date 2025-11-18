@@ -13,24 +13,24 @@ npm install stripe-search-ql
 ### 基本的な使用例
 
 ```typescript
-import { stripeSearch } from "stripe-search-ql";
+import { stripeQuery } from "stripe-search-ql";
 
 // 完全一致検索
-const query = stripeSearch()
+const query = stripeQuery()
   .field("email")
   .equals("amy@rocketrides.io")
   .build();
 // => 'email:"amy@rocketrides.io"'
 
 // 数値比較
-const amountQuery = stripeSearch()
+const amountQuery = stripeQuery()
   .field("amount")
   .greaterThan(1000)
   .build();
 // => 'amount>1000'
 
 // 部分文字列マッチ
-const substringQuery = stripeSearch()
+const substringQuery = stripeQuery()
   .field("email")
   .contains("amy")
   .build();
@@ -41,7 +41,7 @@ const substringQuery = stripeSearch()
 
 ```typescript
 // AND演算子
-const andQuery = stripeSearch()
+const andQuery = stripeQuery()
   .field("email")
   .equals("amy@rocketrides.io")
   .and()
@@ -51,7 +51,7 @@ const andQuery = stripeSearch()
 // => 'email:"amy@rocketrides.io" AND currency:"usd"'
 
 // OR演算子
-const orQuery = stripeSearch()
+const orQuery = stripeQuery()
   .field("currency")
   .equals("usd")
   .or()
@@ -65,14 +65,14 @@ const orQuery = stripeSearch()
 
 ```typescript
 // メタデータの完全一致
-const metadataQuery = stripeSearch()
+const metadataQuery = stripeQuery()
   .metadata("donation-id")
   .equals("asdf-jkl")
   .build();
 // => 'metadata["donation-id"]:"asdf-jkl"'
 
 // メタデータの部分文字列マッチ
-const metadataSubstringQuery = stripeSearch()
+const metadataSubstringQuery = stripeQuery()
   .metadata("key")
   .contains("value")
   .build();
@@ -83,14 +83,14 @@ const metadataSubstringQuery = stripeSearch()
 
 ```typescript
 // フィールドの否定
-const negatedQuery = stripeSearch()
+const negatedQuery = stripeQuery()
   .not("currency")
   .equals("jpy")
   .build();
 // => '-currency:"jpy"'
 
 // メタデータの否定
-const negatedMetadataQuery = stripeSearch()
+const negatedMetadataQuery = stripeQuery()
   .notMetadata("donation-id")
   .equals("asdf-jkl")
   .build();
@@ -101,14 +101,14 @@ const negatedMetadataQuery = stripeSearch()
 
 ```typescript
 // フィールドがNULLかチェック
-const nullCheckQuery = stripeSearch()
+const nullCheckQuery = stripeQuery()
   .field("url")
   .isNull()
   .build();
 // => 'url:null'
 
 // メタデータキーが存在しないかチェック
-const metadataNullQuery = stripeSearch()
+const metadataNullQuery = stripeQuery()
   .notMetadata("donation-id")
   .isNull()
   .build();
@@ -119,19 +119,19 @@ const metadataNullQuery = stripeSearch()
 
 ```typescript
 // より大きい
-stripeSearch().field("amount").greaterThan(1000).build();
+stripeQuery().field("amount").greaterThan(1000).build();
 // => 'amount>1000'
 
 // より小さい
-stripeSearch().field("amount").lessThan(1000).build();
+stripeQuery().field("amount").lessThan(1000).build();
 // => 'amount<1000'
 
 // 以上
-stripeSearch().field("amount").greaterThanOrEqual(1000).build();
+stripeQuery().field("amount").greaterThanOrEqual(1000).build();
 // => 'amount>=1000'
 
 // 以下
-stripeSearch().field("amount").lessThanOrEqual(1000).build();
+stripeQuery().field("amount").lessThanOrEqual(1000).build();
 // => 'amount<=1000'
 ```
 
@@ -139,7 +139,7 @@ stripeSearch().field("amount").lessThanOrEqual(1000).build();
 
 ```typescript
 // 複数の条件を組み合わせる
-const complexQuery = stripeSearch()
+const complexQuery = stripeQuery()
   .field("email")
   .equals("amy@rocketrides.io")
   .and()
@@ -154,13 +154,13 @@ const complexQuery = stripeSearch()
 
 ## APIリファレンス
 
-### `stripeSearch()`
+### `stripeQuery()`
 
 新しいクエリビルダーインスタンスを作成します。
 
-**戻り値**: `QueryBuilder`インスタンス
+**戻り値**: `SearchQueryBuilder`インスタンス
 
-### `QueryBuilder`
+### `SearchQueryBuilder`
 
 #### フィールド検索
 
@@ -174,42 +174,42 @@ const complexQuery = stripeSearch()
 
 #### 論理演算子
 
-- `and(): QueryBuilder` - AND演算子を追加
-- `or(): QueryBuilder` - OR演算子を追加
+- `and(): SearchQueryBuilder` - AND演算子を追加
+- `or(): SearchQueryBuilder` - OR演算子を追加
 
 #### その他
 
 - `build(): string` - 構築したクエリを文字列として返す
-- `reset(): QueryBuilder` - クエリをリセット
+- `reset(): SearchQueryBuilder` - クエリをリセット
 
 ### `FieldBuilder`
 
-- `equals(value: string | number | null): QueryBuilder` - 完全一致 (`:`)
-- `contains(value: string): QueryBuilder` - 部分文字列マッチ (`~`, 最小3文字)
-- `greaterThan(value: number): QueryBuilder` - より大きい (`>`)
-- `lessThan(value: number): QueryBuilder` - より小さい (`<`)
-- `greaterThanOrEqual(value: number): QueryBuilder` - 以上 (`>=`)
-- `lessThanOrEqual(value: number): QueryBuilder` - 以下 (`<=`)
-- `isNull(): QueryBuilder` - NULL値チェック
+- `equals(value: string | number | null): SearchQueryBuilder` - 完全一致 (`:`)
+- `contains(value: string): SearchQueryBuilder` - 部分文字列マッチ (`~`, 最小3文字)
+- `greaterThan(value: number): SearchQueryBuilder` - より大きい (`>`)
+- `lessThan(value: number): SearchQueryBuilder` - より小さい (`<`)
+- `greaterThanOrEqual(value: number): SearchQueryBuilder` - 以上 (`>=`)
+- `lessThanOrEqual(value: number): SearchQueryBuilder` - 以下 (`<=`)
+- `isNull(): SearchQueryBuilder` - NULL値チェック
 
 ### `MetadataFieldBuilder`
 
-- `equals(value: string | number | null): QueryBuilder` - 完全一致 (`:`)
-- `contains(value: string): QueryBuilder` - 部分文字列マッチ (`~`, 最小3文字)
-- `isNull(): QueryBuilder` - NULL値チェック（メタデータキーが存在しない場合）
+- `equals(value: string | number | null): SearchQueryBuilder` - 完全一致 (`:`)
+- `contains(value: string): SearchQueryBuilder` - 部分文字列マッチ (`~`, 最小3文字)
+- `isNull(): SearchQueryBuilder` - NULL値チェック（メタデータキーが存在しない場合）
 
 ## Stripe Search APIとの統合
 
 構築したクエリは、Stripe SDKやAPIクライアントで使用できます。
 
 ```typescript
-import { stripeSearch } from "stripe-search-ql";
+import { stripeQuery } from "stripe-search-ql";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 // クエリを構築
-const query = stripeSearch()
+const query = stripeQuery()
   .field("email")
   .equals("customer@example.com")
   .build();
