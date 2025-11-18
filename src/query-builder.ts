@@ -113,23 +113,16 @@ class MetadataFieldBuilder {
   }
 
   /**
-   * メタデータフィールド名を構築する
-   * @returns メタデータフィールド名
-   */
-  private buildFieldName(): string {
-    return `metadata[${escapeMetadataKey(this.key)}]`;
-  }
-
-  /**
    * フィールド句を追加する
    * @param operator 演算子
    * @param value 値
    * @returns QueryBuilderインスタンス
    */
   private addClause(operator: string, value: string | number | null): QueryBuilder {
+    const field = `metadata[${escapeMetadataKey(this.key)}]`;
     return this.queryBuilder.addFieldClause({
       type: "field",
-      field: this.buildFieldName(),
+      field,
       operator,
       value,
       negated: this.negated,
