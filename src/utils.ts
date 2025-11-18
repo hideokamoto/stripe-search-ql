@@ -1,36 +1,36 @@
 /**
- * 文字列をエスケープして引用符で囲む共通関数
- * @param value エスケープする文字列
- * @returns エスケープされた文字列（引用符で囲まれた）
+ * Common function to escape a string and wrap it in quotes
+ * @param value String to escape
+ * @returns Escaped string (wrapped in quotes)
  */
 function escapeAndQuote(value: string): string {
-  // バックスラッシュとダブルクォートをエスケープ
+  // Escape backslashes and double quotes
   const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   return `"${escaped}"`;
 }
 
 /**
- * 文字列値をエスケープして引用符で囲む
- * @param value エスケープする文字列値
- * @returns エスケープされた文字列値
+ * Escape a string value and wrap it in quotes
+ * @param value String value to escape
+ * @returns Escaped string value
  */
 export function escapeStringValue(value: string): string {
   return escapeAndQuote(value);
 }
 
 /**
- * メタデータキーをエスケープする
- * @param key メタデータキー
- * @returns エスケープされたメタデータキー
+ * Escape a metadata key
+ * @param key Metadata key
+ * @returns Escaped metadata key
  */
 export function escapeMetadataKey(key: string): string {
   return escapeAndQuote(key);
 }
 
 /**
- * 値が文字列かどうかを判定し、適切にフォーマットする
- * @param value フォーマットする値
- * @returns フォーマットされた値の文字列表現
+ * Determine if a value is a string and format it appropriately
+ * @param value Value to format
+ * @returns String representation of the formatted value
  */
 export function formatValue(value: string | number | null): string {
   if (value === null) {

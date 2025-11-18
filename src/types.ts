@@ -1,25 +1,25 @@
 /**
- * 論理演算子
+ * Logical operator
  */
 export type LogicalOperator = "AND" | "OR";
 
 /**
- * クエリ句の種類
+ * Query clause type
  */
 export type ClauseType = "field" | "logical";
 
 /**
- * 数値演算子
+ * Numeric operator
  */
 export type NumericOperator = ">" | "<" | ">=" | "<=";
 
 /**
- * 文字列演算子
+ * String operator
  */
 export type StringOperator = ":" | "~";
 
 /**
- * フィールド句の情報
+ * Field clause information
  */
 export interface FieldClause {
   type: "field";
@@ -30,7 +30,7 @@ export interface FieldClause {
 }
 
 /**
- * 論理演算子句の情報
+ * Logical operator clause information
  */
 export interface LogicalClause {
   type: "logical";
@@ -38,6 +38,6 @@ export interface LogicalClause {
 }
 
 /**
- * クエリ句
+ * Query clause
  */
 export type QueryClause = FieldClause | LogicalClause;
