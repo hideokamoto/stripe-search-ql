@@ -12,9 +12,7 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite build --watch",
@@ -25,20 +23,14 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm test",
+    "prepublishOnly": "npm run lint && npm run build && npm test",
     "release": "np"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hideokamoto/stripe-search-ql.git"
   },
-  "keywords": [
-    "stripe",
-    "search",
-    "query",
-    "builder",
-    "typescript"
-  ],
+  "keywords": ["stripe", "search", "query", "builder", "typescript"],
   "author": "Hidetaka Okamoto <info@wp-kyoto.net>",
   "license": "MIT",
   "devDependencies": {

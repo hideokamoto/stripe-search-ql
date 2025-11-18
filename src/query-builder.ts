@@ -94,7 +94,7 @@ class FieldBuilder {
    */
   private addClause(
     operator: NumericOperator | StringOperator,
-    value: string | number | null,
+    value: string | number | null
   ): QueryBuilder {
     this.queryBuilder.addFieldClause({
       type: "field",
@@ -127,10 +127,7 @@ class MetadataFieldBuilder {
    * @param value 値
    * @returns QueryBuilderインスタンス
    */
-  private addClause(
-    operator: StringOperator,
-    value: string | number | null,
-  ): QueryBuilder {
+  private addClause(operator: StringOperator, value: string | number | null): QueryBuilder {
     const field = `metadata[${escapeMetadataKey(this.key)}]`;
     return this.queryBuilder.addFieldClause({
       type: "field",

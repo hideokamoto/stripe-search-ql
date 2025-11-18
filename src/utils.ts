@@ -41,4 +41,3 @@ export function formatValue(value: string | number | null): string {
   }
   return escapeStringValue(value);
 }
-
