@@ -1,6 +1,6 @@
 {
   "name": "stripe-search-ql",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "TypeScript query builder for Stripe Search API",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,9 +12,7 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite build --watch",
@@ -32,13 +30,7 @@
     "type": "git",
     "url": "git+https://github.com/hideokamoto/stripe-search-ql.git"
   },
-  "keywords": [
-    "stripe",
-    "search",
-    "query",
-    "builder",
-    "typescript"
-  ],
+  "keywords": ["stripe", "search", "query", "builder", "typescript"],
   "author": "Hidetaka Okamoto <info@wp-kyoto.net>",
   "license": "MIT",
   "devDependencies": {
