@@ -87,6 +87,19 @@ class FieldBuilder {
   }
 
   /**
+   * Range query (between min and max inclusive)
+   * @param min Minimum value
+   * @param max Maximum value
+   * @returns SearchQueryBuilder instance
+   */
+  between(min: number, max: number): SearchQueryBuilder {
+    this.addClause(">=", min);
+    this.queryBuilder.and();
+    this.addClause("<=", max);
+    return this.queryBuilder;
+  }
+
+  /**
    * Add a negated field clause
    * @param operator Operator
    * @param value Value
