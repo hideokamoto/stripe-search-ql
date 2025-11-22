@@ -52,6 +52,36 @@ describe("SearchQueryBuilder", () => {
 
       expect(query).toBe("amount<=1000");
     });
+
+    it("should build a between query for range", () => {
+      const query = stripeQuery().field("amount").between(1000, 5000).build();
+
+      expect(query).toBe("amount>=1000 AND amount<=5000");
+    });
+
+    it("should build a between query with negative values", () => {
+      const query = stripeQuery().field("balance").between(-1000, 0).build();
+
+      expect(query).toBe("balance>=-1000 AND balance<=0");
+    });
+
+    it("should build a between query combined with other conditions", () => {
+      const query = stripeQuery()
+        .field("currency")
+        .equals("usd")
+        .and()
+        .field("amount")
+        .between(1000, 5000)
+        .build();
+
+      expect(query).toBe('currency:"usd" AND amount>=1000 AND amount<=5000');
+    });
+
+    it("should throw a helpful error when between is used after OR", () => {
+      expect(() => {
+        stripeQuery().field("currency").equals("usd").or().field("amount").between(1000, 5000);
+      }).toThrow("between() cannot be used in OR queries");
+    });
   });
 
   describe("Negation", () => {
