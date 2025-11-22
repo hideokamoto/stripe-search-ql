@@ -76,6 +76,12 @@ describe("SearchQueryBuilder", () => {
 
       expect(query).toBe('currency:"usd" AND amount>=1000 AND amount<=5000');
     });
+
+    it("should throw a helpful error when between is used after OR", () => {
+      expect(() => {
+        stripeQuery().field("currency").equals("usd").or().field("amount").between(1000, 5000);
+      }).toThrow("between() cannot be used in OR queries");
+    });
   });
 
   describe("Negation", () => {

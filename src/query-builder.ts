@@ -93,6 +93,9 @@ class FieldBuilder {
    * @returns SearchQueryBuilder instance
    */
   between(min: number, max: number): SearchQueryBuilder {
+    if (this.queryBuilder.getLogicalOperator() === "OR") {
+      throw new Error("between() cannot be used in OR queries");
+    }
     this.addClause(">=", min);
     this.queryBuilder.and();
     this.addClause("<=", max);
@@ -187,6 +190,14 @@ class MetadataFieldBuilder {
 export class SearchQueryBuilder {
   private clauses: QueryClause[] = [];
   private logicalOperator: LogicalOperator | null = null;
+
+  /**
+   * Get the current logical operator
+   * @returns Current logical operator or null
+   */
+  getLogicalOperator(): LogicalOperator | null {
+    return this.logicalOperator;
+  }
 
   /**
    * Add a field clause

@@ -1,4 +1,4 @@
-import { SearchQueryBuilder, stripeQuery } from "./query-builder.js";
+import { type SearchQueryBuilder, stripeQuery } from "./query-builder.js";
 
 /**
  * Field builder for Customer-specific fields
@@ -16,8 +16,8 @@ class CustomerFieldBuilder {
 
   private getBuilder() {
     return this.negated
-      ? this.customerBuilder["builder"].not(this.fieldName)
-      : this.customerBuilder["builder"].field(this.fieldName);
+      ? this.customerBuilder.builder.not(this.fieldName)
+      : this.customerBuilder.builder.field(this.fieldName);
   }
 
   equals(value: string | number | null): CustomerQueryBuilder {
@@ -81,8 +81,8 @@ class CustomerMetadataFieldBuilder {
 
   private getBuilder() {
     return this.negated
-      ? this.customerBuilder["builder"].notMetadata(this.key)
-      : this.customerBuilder["builder"].metadata(this.key);
+      ? this.customerBuilder.builder.notMetadata(this.key)
+      : this.customerBuilder.builder.metadata(this.key);
   }
 
   equals(value: string | number | null): CustomerQueryBuilder {
@@ -105,7 +105,8 @@ class CustomerMetadataFieldBuilder {
  * Builder class for constructing Customer-specific Stripe Search API queries
  */
 export class CustomerQueryBuilder {
-  private builder: SearchQueryBuilder;
+  /** @internal */
+  public readonly builder: SearchQueryBuilder;
 
   constructor() {
     this.builder = stripeQuery();

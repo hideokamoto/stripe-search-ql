@@ -56,6 +56,8 @@ describe("CustomerQueryBuilder", () => {
       .equals("premium")
       .build();
 
-    expect(query).toBe('created>1704067200 AND email~"@example.com" AND metadata["plan"]:"premium"');
+    expect(query).toBe(
+      'created>1704067200 AND email~"@example.com" AND metadata["plan"]:"premium"'
+    );
   });
 });
