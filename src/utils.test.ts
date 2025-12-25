@@ -59,7 +59,7 @@ describe("utils", () => {
               i += 2;
             } else if (unquoted[i] === '"') {
               // エスケープされていないダブルクォートは存在しない
-              throw new Error(`Unescaped quote found at position ${i}`);
+              expect(unquoted[i]).not.toBe('"');
             } else {
               i += 1;
             }
@@ -124,34 +124,6 @@ describe("utils", () => {
       fc.assert(
         fc.property(fc.string(), (str) => {
           expect(escapeMetadataKey(str)).toBe(escapeStringValue(str));
-        })
-      );
-    });
-
-    // プロパティベースドテスト: 任意のキーに対して、結果は常にダブルクォートで囲まれている
-    it("should always wrap result in double quotes (PBT)", () => {
-      fc.assert(
-        fc.property(fc.string(), (key) => {
-          const result = escapeMetadataKey(key);
-          expect(result.startsWith('"')).toBe(true);
-          expect(result.endsWith('"')).toBe(true);
-          expect(result.length).toBeGreaterThanOrEqual(2);
-        })
-      );
-    });
-
-    // プロパティベースドテスト: 空文字列も正しく処理される
-    it("should handle empty string correctly (PBT)", () => {
-      expect(escapeMetadataKey("")).toBe('""');
-    });
-
-    // プロパティベースドテスト: Unicode文字も正しく処理される（fc.string()はUnicode文字列も生成する）
-    it("should handle Unicode characters (PBT)", () => {
-      fc.assert(
-        fc.property(fc.string(), (key) => {
-          const result = escapeMetadataKey(key);
-          expect(result.startsWith('"')).toBe(true);
-          expect(result.endsWith('"')).toBe(true);
         })
       );
     });

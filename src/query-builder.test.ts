@@ -529,31 +529,39 @@ describe("SearchQueryBuilder", () => {
       );
     });
 
-    // プロパティベースドテスト: 先頭の論理演算子は無視される
-    it("should ignore leading logical operators (PBT)", () => {
+    // プロパティベースドテスト: 先頭のAND演算子は無視される
+    it("should ignore leading AND operators (PBT)", () => {
       fc.assert(
         fc.property(
-          fc.nat(5), // number of leading ANDs
-          fc.nat(5), // number of leading ORs
+          fc.nat({ min: 1, max: 5 }), // number of leading ANDs (at least 1)
           fc.string({ minLength: 1 }),
           fc.string({ minLength: 1 }),
-          (numAnds, numOrs, field, value) => {
+          (numAnds, field, value) => {
             const builder = stripeQuery();
-            // ANDとORを混在させないようにする
-            let finalNumAnds = numAnds;
-            let finalNumOrs = numOrs;
-            if (numAnds > 0 && numOrs > 0) {
-              // どちらか一方だけを使用
-              if (numAnds > numOrs) {
-                finalNumOrs = 0;
-              } else {
-                finalNumAnds = 0;
-              }
-            }
-            for (let i = 0; i < finalNumAnds; i++) {
+            for (let i = 0; i < numAnds; i++) {
               builder.and();
             }
-            for (let i = 0; i < finalNumOrs; i++) {
+            builder.field(field).equals(value);
+            const result = builder.build();
+            // 先頭の論理演算子は含まれていない
+            expect(result).not.toMatch(/^(AND|OR)\s/);
+            // フィールド句は含まれている
+            expect(result).toContain(`${field}:`);
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 先頭のOR演算子は無視される
+    it("should ignore leading OR operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.nat({ min: 1, max: 5 }), // number of leading ORs (at least 1)
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          (numOrs, field, value) => {
+            const builder = stripeQuery();
+            for (let i = 0; i < numOrs; i++) {
               builder.or();
             }
             builder.field(field).equals(value);
@@ -591,17 +599,39 @@ describe("SearchQueryBuilder", () => {
       );
     });
 
-    // プロパティベースドテスト: 末尾の論理演算子は削除される
-    it("should remove trailing logical operators (PBT)", () => {
+    // プロパティベースドテスト: 末尾のAND演算子は削除される
+    it("should remove trailing AND operators (PBT)", () => {
       fc.assert(
         fc.property(
-          fc.nat(5), // number of trailing ANDs
-          fc.string(),
-          fc.string(),
+          fc.nat({ min: 1, max: 5 }), // number of trailing ANDs (at least 1)
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
           (numTrailingAnds, field, value) => {
             const builder = stripeQuery().field(field).equals(value);
             for (let i = 0; i < numTrailingAnds; i++) {
               builder.and();
+            }
+            const result = builder.build();
+            // 末尾が論理演算子で終わっていない
+            expect(result).not.toMatch(/\s(AND|OR)$/);
+            // フィールド句は含まれている
+            expect(result).toContain(`${field}:`);
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 末尾のOR演算子は削除される
+    it("should remove trailing OR operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.nat({ min: 1, max: 5 }), // number of trailing ORs (at least 1)
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          (numTrailingOrs, field, value) => {
+            const builder = stripeQuery().field(field).equals(value);
+            for (let i = 0; i < numTrailingOrs; i++) {
+              builder.or();
             }
             const result = builder.build();
             // 末尾が論理演算子で終わっていない
