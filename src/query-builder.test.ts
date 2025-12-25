@@ -1,3 +1,4 @@
+import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { stripeQuery } from "./query-builder.js";
 
@@ -351,6 +352,295 @@ describe("SearchQueryBuilder", () => {
       // After reset, AND can also be used
       const query = builder.field("a").equals(1).and().field("b").equals(2).build();
       expect(query).toBe("a:1 AND b:2");
+    });
+  });
+
+  describe("Property-based tests for error cases", () => {
+    // プロパティベースドテスト: contains()は3文字未満の文字列で常にエラーを投げる
+    it("should throw error for contains() with strings shorter than 3 characters (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.string({ minLength: 0, maxLength: 2 }),
+          fc.string(), // field name
+          (shortString, fieldName) => {
+            expect(() => {
+              stripeQuery().field(fieldName).contains(shortString);
+            }).toThrow("Substring match requires at least 3 characters");
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: contains()は3文字以上の文字列でエラーを投げない
+    it("should not throw error for contains() with strings of 3 or more characters (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.string({ minLength: 3, maxLength: 100 }),
+          fc.string(), // field name
+          (longString, fieldName) => {
+            expect(() => {
+              stripeQuery().field(fieldName).contains(longString);
+            }).not.toThrow();
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: metadata().contains()も3文字未満でエラーを投げる
+    it("should throw error for metadata().contains() with strings shorter than 3 characters (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.string({ minLength: 0, maxLength: 2 }),
+          fc.string(), // metadata key
+          (shortString, metadataKey) => {
+            expect(() => {
+              stripeQuery().metadata(metadataKey).contains(shortString);
+            }).toThrow("Substring match requires at least 3 characters");
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: ANDとORの混在は常にエラーを投げる
+    it("should throw error when mixing AND and OR operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.string(),
+          fc.string(),
+          fc.string(),
+          fc.string(),
+          (field1, value1, field2, value2) => {
+            // ANDの後にORを追加
+            expect(() => {
+              stripeQuery()
+                .field(field1)
+                .equals(value1)
+                .and()
+                .field(field2)
+                .equals(value2)
+                .or()
+                .field("c")
+                .equals("d");
+            }).toThrow("Cannot mix AND and OR operators in a single query");
+
+            // ORの後にANDを追加
+            expect(() => {
+              stripeQuery()
+                .field(field1)
+                .equals(value1)
+                .or()
+                .field(field2)
+                .equals(value2)
+                .and()
+                .field("c")
+                .equals("d");
+            }).toThrow("Cannot mix AND and OR operators in a single query");
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 複数のANDの後にORを追加するとエラー
+    it("should throw error when adding OR after multiple AND operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.array(fc.tuple(fc.string({ minLength: 1 }), fc.string({ minLength: 1 })), {
+            minLength: 2,
+            maxLength: 5,
+          }),
+          (fields) => {
+            const builder = stripeQuery();
+            fields.forEach(([field, value], index) => {
+              builder.field(field).equals(value);
+              if (index < fields.length - 1) {
+                builder.and();
+              }
+            });
+            // .or()の呼び出し時点でエラーが投げられる
+            expect(() => {
+              builder.or();
+            }).toThrow("Cannot mix AND and OR operators in a single query");
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 複数のORの後にANDを追加するとエラー
+    it("should throw error when adding AND after multiple OR operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.array(fc.tuple(fc.string({ minLength: 1 }), fc.string({ minLength: 1 })), {
+            minLength: 2,
+            maxLength: 5,
+          }),
+          (fields) => {
+            const builder = stripeQuery();
+            fields.forEach(([field, value], index) => {
+              builder.field(field).equals(value);
+              if (index < fields.length - 1) {
+                builder.or();
+              }
+            });
+            // .and()の呼び出し時点でエラーが投げられる
+            expect(() => {
+              builder.and();
+            }).toThrow("Cannot mix AND and OR operators in a single query");
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 空のクエリビルダーは常に空文字列を返す
+    it("should always return empty string for empty query builder (PBT)", () => {
+      fc.assert(
+        fc.property(fc.nat(10), (numLogicalOps) => {
+          const builder = stripeQuery();
+          // 論理演算子だけを追加
+          for (let i = 0; i < numLogicalOps; i++) {
+            builder.and();
+          }
+          expect(builder.build()).toBe("");
+        })
+      );
+    });
+
+    // プロパティベースドテスト: リセット後のクエリビルダーは空文字列を返す
+    it("should return empty string after reset (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.array(fc.tuple(fc.string(), fc.string()), { minLength: 1, maxLength: 10 }),
+          fc.oneof(fc.constant("AND"), fc.constant("OR")),
+          (fields, operator) => {
+            const builder = stripeQuery();
+            fields.forEach(([field, value], index) => {
+              builder.field(field).equals(value);
+              if (index < fields.length - 1) {
+                if (operator === "AND") {
+                  builder.and();
+                } else {
+                  builder.or();
+                }
+              }
+            });
+            builder.reset();
+            expect(builder.build()).toBe("");
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 先頭のAND演算子は無視される
+    it("should ignore leading AND operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.nat({ min: 1, max: 5 }), // number of leading ANDs (at least 1)
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          (numAnds, field, value) => {
+            const builder = stripeQuery();
+            for (let i = 0; i < numAnds; i++) {
+              builder.and();
+            }
+            builder.field(field).equals(value);
+            const result = builder.build();
+            // 先頭の論理演算子は含まれていない
+            expect(result).not.toMatch(/^(AND|OR)\s/);
+            // フィールド句は含まれている
+            expect(result).toContain(`${field}:`);
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 先頭のOR演算子は無視される
+    it("should ignore leading OR operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.nat({ min: 1, max: 5 }), // number of leading ORs (at least 1)
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          (numOrs, field, value) => {
+            const builder = stripeQuery();
+            for (let i = 0; i < numOrs; i++) {
+              builder.or();
+            }
+            builder.field(field).equals(value);
+            const result = builder.build();
+            // 先頭の論理演算子は含まれていない
+            expect(result).not.toMatch(/^(AND|OR)\s/);
+            // フィールド句は含まれている
+            expect(result).toContain(`${field}:`);
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 連続する論理演算子は1つだけ使用される
+    it("should use only one of consecutive logical operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.nat(5), // number of consecutive ANDs
+          fc.string(),
+          fc.string(),
+          fc.string(),
+          fc.string(),
+          (numConsecutiveAnds, field1, value1, field2, value2) => {
+            const builder = stripeQuery().field(field1).equals(value1);
+            for (let i = 0; i < numConsecutiveAnds; i++) {
+              builder.and();
+            }
+            builder.field(field2).equals(value2);
+            const result = builder.build();
+            // ANDは1回だけ出現する
+            const andMatches = result.match(/\sAND\s/g);
+            expect(andMatches ? andMatches.length : 0).toBeLessThanOrEqual(1);
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 末尾のAND演算子は削除される
+    it("should remove trailing AND operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.nat({ min: 1, max: 5 }), // number of trailing ANDs (at least 1)
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          (numTrailingAnds, field, value) => {
+            const builder = stripeQuery().field(field).equals(value);
+            for (let i = 0; i < numTrailingAnds; i++) {
+              builder.and();
+            }
+            const result = builder.build();
+            // 末尾が論理演算子で終わっていない
+            expect(result).not.toMatch(/\s(AND|OR)$/);
+            // フィールド句は含まれている
+            expect(result).toContain(`${field}:`);
+          }
+        )
+      );
+    });
+
+    // プロパティベースドテスト: 末尾のOR演算子は削除される
+    it("should remove trailing OR operators (PBT)", () => {
+      fc.assert(
+        fc.property(
+          fc.nat({ min: 1, max: 5 }), // number of trailing ORs (at least 1)
+          fc.string({ minLength: 1 }),
+          fc.string({ minLength: 1 }),
+          (numTrailingOrs, field, value) => {
+            const builder = stripeQuery().field(field).equals(value);
+            for (let i = 0; i < numTrailingOrs; i++) {
+              builder.or();
+            }
+            const result = builder.build();
+            // 末尾が論理演算子で終わっていない
+            expect(result).not.toMatch(/\s(AND|OR)$/);
+            // フィールド句は含まれている
+            expect(result).toContain(`${field}:`);
+          }
+        )
+      );
     });
   });
 });

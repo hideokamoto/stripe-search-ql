@@ -45,6 +45,7 @@
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.10.2",
     "@vitest/coverage-v8": "^2.1.8",
+    "fast-check": "^4.5.2",
     "np": "^10.2.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",
