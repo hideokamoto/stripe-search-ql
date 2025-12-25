@@ -58,8 +58,8 @@ describe("utils", () => {
               expect(["\\", '"']).toContain(unquoted[i + 1]);
               i += 2;
             } else if (unquoted[i] === '"') {
-              // エスケープされていないダブルクォートは存在しない
-              expect(unquoted[i]).not.toBe('"');
+              // エスケープされていないダブルクォートは存在しない（このブランチは到達すべきではない）
+              expect.fail(`Unescaped quote found at position ${i}`);
             } else {
               i += 1;
             }
@@ -68,8 +68,8 @@ describe("utils", () => {
       );
     });
 
-    // プロパティベースドテスト: 空文字列も正しく処理される
-    it("should handle empty string correctly (PBT)", () => {
+    // 空文字列も正しく処理される
+    it("should handle empty string correctly", () => {
       expect(escapeStringValue("")).toBe('""');
     });
 
@@ -91,17 +91,6 @@ describe("utils", () => {
     it("should handle very long strings (PBT)", () => {
       fc.assert(
         fc.property(fc.string({ minLength: 1000, maxLength: 10000 }), (str) => {
-          const result = escapeStringValue(str);
-          expect(result.startsWith('"')).toBe(true);
-          expect(result.endsWith('"')).toBe(true);
-        })
-      );
-    });
-
-    // プロパティベースドテスト: Unicode文字も正しく処理される（fc.string()はUnicode文字列も生成する）
-    it("should handle Unicode characters (PBT)", () => {
-      fc.assert(
-        fc.property(fc.string(), (str) => {
           const result = escapeStringValue(str);
           expect(result.startsWith('"')).toBe(true);
           expect(result.endsWith('"')).toBe(true);
@@ -173,8 +162,8 @@ describe("utils", () => {
       );
     });
 
-    // プロパティベースドテスト: ゼロも正しく処理される
-    it("should format zero correctly (PBT)", () => {
+    // ゼロも正しく処理される
+    it("should format zero correctly", () => {
       expect(formatValue(0)).toBe("0");
       expect(formatValue(-0)).toBe("0");
     });
@@ -193,11 +182,6 @@ describe("utils", () => {
           }
         )
       );
-    });
-
-    // プロパティベースドテスト: nullは常に"null"を返す
-    it("should always return 'null' for null value (PBT)", () => {
-      expect(formatValue(null)).toBe("null");
     });
 
     // プロパティベースドテスト: 文字列、数値、nullのいずれかに対して常に文字列を返す
