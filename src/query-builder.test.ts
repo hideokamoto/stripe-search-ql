@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
+import { describe, expect, it } from "vitest";
 import { stripeQuery } from "./query-builder.js";
 
 describe("SearchQueryBuilder", () => {
@@ -540,18 +540,20 @@ describe("SearchQueryBuilder", () => {
           (numAnds, numOrs, field, value) => {
             const builder = stripeQuery();
             // ANDとORを混在させないようにする
+            let finalNumAnds = numAnds;
+            let finalNumOrs = numOrs;
             if (numAnds > 0 && numOrs > 0) {
               // どちらか一方だけを使用
               if (numAnds > numOrs) {
-                numOrs = 0;
+                finalNumOrs = 0;
               } else {
-                numAnds = 0;
+                finalNumAnds = 0;
               }
             }
-            for (let i = 0; i < numAnds; i++) {
+            for (let i = 0; i < finalNumAnds; i++) {
               builder.and();
             }
-            for (let i = 0; i < numOrs; i++) {
+            for (let i = 0; i < finalNumOrs; i++) {
               builder.or();
             }
             builder.field(field).equals(value);
@@ -575,9 +577,7 @@ describe("SearchQueryBuilder", () => {
           fc.string(),
           fc.string(),
           (numConsecutiveAnds, field1, value1, field2, value2) => {
-            const builder = stripeQuery()
-              .field(field1)
-              .equals(value1);
+            const builder = stripeQuery().field(field1).equals(value1);
             for (let i = 0; i < numConsecutiveAnds; i++) {
               builder.and();
             }

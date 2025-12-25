@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
+import { describe, expect, it } from "vitest";
 import { escapeMetadataKey, escapeStringValue, formatValue } from "./utils.js";
 
 describe("utils", () => {
@@ -36,9 +36,7 @@ describe("utils", () => {
           // 前後のクォートを削除
           const unquoted = escaped.slice(1, -1);
           // エスケープを解除
-          const unescaped = unquoted
-            .replace(/\\\\/g, "\\")
-            .replace(/\\"/g, '"');
+          const unescaped = unquoted.replace(/\\\\/g, "\\").replace(/\\"/g, '"');
           expect(unescaped).toBe(str);
         })
       );
@@ -233,33 +231,22 @@ describe("utils", () => {
     // プロパティベースドテスト: 文字列、数値、nullのいずれかに対して常に文字列を返す
     it("should always return a string (PBT)", () => {
       fc.assert(
-        fc.property(
-          fc.oneof(
-            fc.string(),
-            fc.integer(),
-            fc.float(),
-            fc.constant(null)
-          ),
-          (value) => {
-            const result = formatValue(value);
-            expect(typeof result).toBe("string");
-            expect(result.length).toBeGreaterThan(0);
-          }
-        )
+        fc.property(fc.oneof(fc.string(), fc.integer(), fc.float(), fc.constant(null)), (value) => {
+          const result = formatValue(value);
+          expect(typeof result).toBe("string");
+          expect(result.length).toBeGreaterThan(0);
+        })
       );
     });
 
     // プロパティベースドテスト: 数値の文字列はクォートされない
     it("should not quote numeric values (PBT)", () => {
       fc.assert(
-        fc.property(
-          fc.oneof(fc.integer(), fc.float()),
-          (num) => {
-            const result = formatValue(num);
-            expect(result).not.toContain('"');
-            expect(result).not.toContain("'");
-          }
-        )
+        fc.property(fc.oneof(fc.integer(), fc.float()), (num) => {
+          const result = formatValue(num);
+          expect(result).not.toContain('"');
+          expect(result).not.toContain("'");
+        })
       );
     });
 
