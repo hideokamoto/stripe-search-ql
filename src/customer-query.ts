@@ -99,6 +99,10 @@ class CustomerMetadataFieldBuilder {
     this.getBuilder().isNull();
     return this.customerBuilder;
   }
+
+  not(): CustomerMetadataFieldBuilder {
+    return new CustomerMetadataFieldBuilder(this.customerBuilder, this.key, true);
+  }
 }
 
 /**

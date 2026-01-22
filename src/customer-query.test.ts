@@ -44,6 +44,12 @@ describe("CustomerQueryBuilder", () => {
     expect(query).toBe('-email:"blocked@example.com"');
   });
 
+  it("should support negation on metadata fields", () => {
+    const query = customerQuery().metadata("vip").not().equals("true").build();
+
+    expect(query).toBe('-metadata["vip"]:"true"');
+  });
+
   it("should build a complex customer query", () => {
     const query = customerQuery()
       .created()
