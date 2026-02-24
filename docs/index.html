@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>stripe-search-ql - Stripe Search API のためのクエリビルダー</title>
+  <meta name="description" content="stripe-search-ql は Stripe Search API のクエリを型安全に構築できる TypeScript ライブラリです。手書きのクエリ文字列から解放されましょう。">
+  <style>
+    :root {
+      --color-primary: #635bff;
+      --color-primary-dark: #4b45c6;
+      --color-bg: #f6f9fc;
+      --color-surface: #ffffff;
+      --color-text: #32325d;
+      --color-text-secondary: #6b7c93;
+      --color-border: #e6ebf1;
+      --color-code-bg: #1a1f36;
+      --color-code-text: #e6ebf1;
+      --color-accent-green: #24b47e;
+      --color-accent-red: #e25950;
+      --color-accent-orange: #f5a623;
+      --max-width: 960px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--color-text);
+      background: var(--color-bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    .header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    .header-logo span { color: var(--color-primary); }
+    .header-links { display: flex; gap: 24px; }
+    .header-links a {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .header-links a:hover { color: var(--color-primary); }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 64px;
+      background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg) 100%);
+    }
+    .hero-badge {
+      display: inline-block;
+      background: #eef0ff;
+      color: var(--color-primary);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: 44px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--color-primary), #7a73ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-description {
+      font-size: 18px;
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin: 0 auto 36px;
+    }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--color-primary-dark); transform: translateY(-1px); }
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    .btn-secondary:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+    .install-box {
+      display: inline-flex;
+      align-items: center;
+      background: var(--color-code-bg);
+      color: var(--color-code-text);
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+      font-size: 15px;
+      margin-top: 32px;
+      gap: 12px;
+    }
+    .install-box .prompt { color: var(--color-accent-green); user-select: none; }
+
+    /* Section common */
+    section { padding: 72px 24px; }
+    .section-inner { max-width: var(--max-width); margin: 0 auto; }
+    .section-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--color-primary);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+    .section-description {
+      font-size: 17px;
+      color: var(--color-text-secondary);
+      max-width: 640px;
+      margin-bottom: 48px;
+    }
+
+    /* Problem section */
+    .problem { background: var(--color-surface); }
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 720px) {
+      .comparison { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 32px; }
+    }
+    .comparison-card {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+    .comparison-card-header {
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comparison-card-header.before {
+      background: #fff0ef;
+      color: var(--color-accent-red);
+    }
+    .comparison-card-header.after {
+      background: #e8faf3;
+      color: var(--color-accent-green);
+    }
+
+    /* Code blocks */
+    pre {
+      background: var(--color-code-bg);
+      color: var(--color-code-text);
+      padding: 20px 24px;
+      font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      overflow-x: auto;
+    }
+    .code-keyword { color: #c792ea; }
+    .code-string { color: #c3e88d; }
+    .code-func { color: #82aaff; }
+    .code-comment { color: #6a7a8e; }
+    .code-number { color: #f78c6c; }
+    .code-operator { color: #89ddff; }
+
+    /* Features grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 720px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+    .feature-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 28px 24px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .feature-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 4px 12px rgba(99, 91, 255, 0.08);
+    }
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .feature-icon.purple { background: #eef0ff; }
+    .feature-icon.green  { background: #e8faf3; }
+    .feature-icon.orange { background: #fff5e5; }
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Use cases */
+    .usecases { background: var(--color-surface); }
+    .usecase-list { display: flex; flex-direction: column; gap: 32px; }
+    .usecase-item {
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .usecase-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .usecase-header h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .usecase-header p { font-size: 14px; color: var(--color-text-secondary); }
+
+    /* CTA */
+    .cta {
+      text-align: center;
+      background: linear-gradient(135deg, var(--color-code-bg) 0%, #2a2f4a 100%);
+      color: #fff;
+      padding: 80px 24px;
+    }
+    .cta .section-title { color: #fff; }
+    .cta .section-description { color: #a5b4c9; margin-left: auto; margin-right: auto; }
+    .cta .btn-primary {
+      background: #fff;
+      color: var(--color-primary);
+    }
+    .cta .btn-primary:hover { background: #f0f0ff; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+    .footer a { color: var(--color-primary); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="header-logo">stripe-search-<span>ql</span></a>
+    <nav class="header-links">
+      <a href="#features">Features</a>
+      <a href="#examples">Examples</a>
+      <a href="https://github.com/hideokamoto/stripe-search-ql">GitHub</a>
+      <a href="https://www.npmjs.com/package/stripe-search-ql">npm</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">TypeScript / Zero Dependencies / MIT License</div>
+  <h1>Stripe Search API の<br>クエリを<em>型安全</em>に組み立てる</h1>
+  <p class="hero-description">
+    stripe-search-ql は、Stripe Search API のクエリ文字列をフルーエント API で構築できる TypeScript ライブラリです。手書きの文字列連結から解放され、読みやすく保守しやすいコードを書きましょう。
+  </p>
+  <div class="hero-actions">
+    <a href="https://github.com/hideokamoto/stripe-search-ql" class="btn btn-primary">GitHub で見る</a>
+    <a href="#examples" class="btn btn-secondary">コード例を見る</a>
+  </div>
+  <div class="install-box">
+    <span class="prompt">$</span>
+    <span>npm install stripe-search-ql</span>
+  </div>
+</section>
+
+<!-- Problem -->
+<section class="problem" id="problem">
+  <div class="section-inner">
+    <p class="section-label">Problem &amp; Solution</p>
+    <h2 class="section-title">手書きのクエリ文字列、まだ続けますか?</h2>
+    <p class="section-description">
+      Stripe Search API のクエリは独自の構文を持ちます。文字列を手動で連結すると、エスケープ漏れ・構文ミス・可読性の低下に繋がります。stripe-search-ql を使えば、メソッドチェーンで意図が明確なクエリを組み立てられます。
+    </p>
+
+    <div class="comparison">
+      <!-- Before -->
+      <div class="comparison-card">
+        <div class="comparison-card-header before">&#x2717; Before: 手書きの文字列連結</div>
+        <pre><span class="code-comment">// エスケープは正しい? AND の前後のスペースは?</span>
+<span class="code-comment">// metadata の括弧記法、覚えていますか?</span>
+
+<span class="code-keyword">const</span> query <span class="code-operator">=</span>
+  <span class="code-string">`email:"</span><span class="code-operator">${</span>email<span class="code-operator">}</span><span class="code-string">"` +</span>
+  <span class="code-string">` AND `</span> <span class="code-operator">+</span>
+  <span class="code-string">`metadata["plan"]:"</span><span class="code-operator">${</span>plan<span class="code-operator">}</span><span class="code-string">"` +</span>
+  <span class="code-string">` AND `</span> <span class="code-operator">+</span>
+  <span class="code-string">`amount>`</span> <span class="code-operator">+</span> minAmount<span class="code-operator">;</span>
+
+<span class="code-comment">// => 実行時まで構文エラーに気づけない</span></pre>
+      </div>
+      <!-- After -->
+      <div class="comparison-card">
+        <div class="comparison-card-header after">&#x2713; After: stripe-search-ql</div>
+        <pre><span class="code-keyword">import</span> { <span class="code-func">stripeQuery</span> } <span class="code-keyword">from</span> <span class="code-string">"stripe-search-ql"</span><span class="code-operator">;</span>
+
+<span class="code-keyword">const</span> query <span class="code-operator">=</span> <span class="code-func">stripeQuery</span>()
+  .<span class="code-func">field</span>(<span class="code-string">"email"</span>).<span class="code-func">equals</span>(email)
+  .<span class="code-func">and</span>()
+  .<span class="code-func">metadata</span>(<span class="code-string">"plan"</span>).<span class="code-func">equals</span>(plan)
+  .<span class="code-func">and</span>()
+  .<span class="code-func">field</span>(<span class="code-string">"amount"</span>).<span class="code-func">greaterThan</span>(minAmount)
+  .<span class="code-func">build</span>()<span class="code-operator">;</span>
+
+<span class="code-comment">// => 自動エスケープ・型チェック・構文保証</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="section-inner">
+    <p class="section-label">Features</p>
+    <h2 class="section-title">開発者に嬉しい設計</h2>
+    <p class="section-description">
+      Stripe 決済システムの検索ロジックを安全かつ効率的に構築するための機能を備えています。
+    </p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon purple">&#x1f517;</div>
+        <h3>フルーエント API</h3>
+        <p>メソッドチェーンで直感的にクエリを組み立て。field(), and(), build() のシンプルな流れで、複雑な検索条件も読みやすく表現できます。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">&#x1f6e1;</div>
+        <h3>型安全 &amp; 自動バリデーション</h3>
+        <p>TypeScript の型推論によるコード補完に加え、AND/OR の混在禁止・部分一致の最小文字数チェックなどを実行時に検証します。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon orange">&#x1f50d;</div>
+        <h3>自動エスケープ</h3>
+        <p>文字列値のダブルクォートやバックスラッシュを自動でエスケープ。メタデータキーの括弧記法も正しく生成されるため、構文エラーを防ぎます。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon purple">&#x1f4e6;</div>
+        <h3>ゼロ依存</h3>
+        <p>ランタイム依存なし。バンドルサイズへの影響を最小限に抑えつつ、必要な機能をすべて提供します。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">&#x1f3af;</div>
+        <h3>専用ビルダー &amp; テンプレート</h3>
+        <p>CustomerQueryBuilder や chargeTemplates など、リソースごとのヘルパーを提供。よくあるクエリパターンをワンライナーで記述できます。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon orange">&#x2696;</div>
+        <h3>MIT ライセンス</h3>
+        <p>商用利用を含むあらゆるプロジェクトで自由に使えます。ソースコードは GitHub で公開されています。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Examples -->
+<section class="usecases" id="examples">
+  <div class="section-inner">
+    <p class="section-label">Code Examples</p>
+    <h2 class="section-title">実践的なコード例</h2>
+    <p class="section-description">
+      Stripe Search API が対応する主要な検索パターンを、stripe-search-ql でどう書くかを紹介します。
+    </p>
+
+    <div class="usecase-list">
+      <!-- Example 1 -->
+      <div class="usecase-item">
+        <div class="usecase-header">
+          <h3>顧客をメールアドレスで検索する</h3>
+          <p>CustomerQueryBuilder を使えば、フィールド名を覚える必要がありません。</p>
+        </div>
+        <pre><span class="code-keyword">import</span> { <span class="code-func">customerQuery</span> } <span class="code-keyword">from</span> <span class="code-string">"stripe-search-ql"</span><span class="code-operator">;</span>
+<span class="code-keyword">import</span> Stripe <span class="code-keyword">from</span> <span class="code-string">"stripe"</span><span class="code-operator">;</span>
+
+<span class="code-keyword">const</span> stripe <span class="code-operator">=</span> <span class="code-keyword">new</span> <span class="code-func">Stripe</span>(process.env.<span class="code-func">STRIPE_SECRET_KEY</span>!)<span class="code-operator">;</span>
+
+<span class="code-keyword">const</span> query <span class="code-operator">=</span> <span class="code-func">customerQuery</span>()
+  .<span class="code-func">email</span>().<span class="code-func">equals</span>(<span class="code-string">"user@example.com"</span>)
+  .<span class="code-func">build</span>()<span class="code-operator">;</span>
+<span class="code-comment">// => 'email:"user@example.com"'</span>
+
+<span class="code-keyword">const</span> result <span class="code-operator">=</span> <span class="code-keyword">await</span> stripe.customers.<span class="code-func">search</span>({ query })<span class="code-operator">;</span></pre>
+      </div>
+
+      <!-- Example 2 -->
+      <div class="usecase-item">
+        <div class="usecase-header">
+          <h3>金額の範囲と通貨で課金を絞り込む</h3>
+          <p>between() を使った範囲検索と AND 条件の組み合わせ。</p>
+        </div>
+        <pre><span class="code-keyword">import</span> { <span class="code-func">stripeQuery</span> } <span class="code-keyword">from</span> <span class="code-string">"stripe-search-ql"</span><span class="code-operator">;</span>
+
+<span class="code-keyword">const</span> query <span class="code-operator">=</span> <span class="code-func">stripeQuery</span>()
+  .<span class="code-func">field</span>(<span class="code-string">"amount"</span>).<span class="code-func">between</span>(<span class="code-number">1000</span>, <span class="code-number">50000</span>)
+  .<span class="code-func">and</span>()
+  .<span class="code-func">field</span>(<span class="code-string">"currency"</span>).<span class="code-func">equals</span>(<span class="code-string">"jpy"</span>)
+  .<span class="code-func">build</span>()<span class="code-operator">;</span>
+<span class="code-comment">// => 'amount>=1000 AND amount<=50000 AND currency:"jpy"'</span></pre>
+      </div>
+
+      <!-- Example 3 -->
+      <div class="usecase-item">
+        <div class="usecase-header">
+          <h3>メタデータで検索する</h3>
+          <p>metadata() メソッドが括弧記法やエスケープを自動処理します。</p>
+        </div>
+        <pre><span class="code-keyword">const</span> query <span class="code-operator">=</span> <span class="code-func">stripeQuery</span>()
+  .<span class="code-func">metadata</span>(<span class="code-string">"order-id"</span>).<span class="code-func">equals</span>(<span class="code-string">"ORD-2025-001"</span>)
+  .<span class="code-func">and</span>()
+  .<span class="code-func">notMetadata</span>(<span class="code-string">"refunded"</span>).<span class="code-func">isNull</span>()
+  .<span class="code-func">build</span>()<span class="code-operator">;</span>
+<span class="code-comment">// => 'metadata["order-id"]:"ORD-2025-001" AND -metadata["refunded"]:null'</span></pre>
+      </div>
+
+      <!-- Example 4 -->
+      <div class="usecase-item">
+        <div class="usecase-header">
+          <h3>テンプレートで定型クエリを素早く生成</h3>
+          <p>chargeTemplates で、よくある検索パターンを 1 行で。</p>
+        </div>
+        <pre><span class="code-keyword">import</span> { <span class="code-func">chargeTemplates</span> } <span class="code-keyword">from</span> <span class="code-string">"stripe-search-ql"</span><span class="code-operator">;</span>
+
+<span class="code-comment">// 過去 7 日間に失敗した課金</span>
+<span class="code-keyword">const</span> failedQuery <span class="code-operator">=</span> chargeTemplates.<span class="code-func">failedInLastDays</span>(<span class="code-number">7</span>).<span class="code-func">build</span>()<span class="code-operator">;</span>
+
+<span class="code-comment">// 高額課金 (100,000 以上)</span>
+<span class="code-keyword">const</span> highValueQuery <span class="code-operator">=</span> chargeTemplates.<span class="code-func">highValue</span>(<span class="code-number">100000</span>).<span class="code-func">build</span>()<span class="code-operator">;</span>
+
+<span class="code-comment">// 通貨で絞り込み</span>
+<span class="code-keyword">const</span> usdQuery <span class="code-operator">=</span> chargeTemplates.<span class="code-func">byCurrency</span>(<span class="code-string">"usd"</span>).<span class="code-func">build</span>()<span class="code-operator">;</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="section-inner">
+    <h2 class="section-title">今すぐ使い始める</h2>
+    <p class="section-description">
+      npm からインストールして、数行のコードで Stripe Search API のクエリを安全に構築しましょう。
+    </p>
+    <div class="hero-actions">
+      <a href="https://github.com/hideokamoto/stripe-search-ql" class="btn btn-primary">GitHub リポジトリ</a>
+      <a href="https://www.npmjs.com/package/stripe-search-ql" class="btn btn-secondary" style="color:#fff;border-color:rgba(255,255,255,0.3);">npm パッケージ</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>
+    stripe-search-ql is created by <a href="https://github.com/hideokamoto">Hidetaka Okamoto</a> &middot;
+    <a href="https://github.com/hideokamoto/stripe-search-ql">Source on GitHub</a> &middot;
+    MIT License
+  </p>
+</footer>
+
+</body>
+</html>
