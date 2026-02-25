@@ -40,6 +40,6 @@ The following are constraints imposed by the Stripe Search API itself:
 
 ## Next steps
 
-- [Installation](/guides/installation/)
-- [Basic Usage](/guides/basic-usage/)
-- [API Reference](/api/)
+- [Installation](/stripe-search-ql/guides/installation/)
+- [Basic Usage](/stripe-search-ql/guides/basic-usage/)
+- [API Reference](/stripe-search-ql/api/)
