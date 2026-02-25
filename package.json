@@ -6,6 +6,9 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "stripe-ql": "./bin/run.js"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -13,8 +16,14 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
+  "oclif": {
+    "bin": "stripe-ql",
+    "dirname": "stripe-ql",
+    "commands": "./dist/cli/commands"
+  },
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite build --watch",
@@ -37,10 +46,15 @@
     "search",
     "query",
     "builder",
-    "typescript"
+    "typescript",
+    "cli"
   ],
   "author": "Hidetaka Okamoto <info@wp-kyoto.net>",
   "license": "MIT",
+  "dependencies": {
+    "@oclif/core": "^4.0.0",
+    "stripe": "^17.0.0"
+  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.10.2",
