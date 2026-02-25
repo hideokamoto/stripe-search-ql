@@ -1,0 +1,33 @@
+---
+title: stripe-search-ql
+description: TypeScript query builder for Stripe Search API
+template: splash
+hero:
+  tagline: A type-safe, fluent query builder for the Stripe Search API
+  actions:
+    - text: Get Started
+      link: /stripe-search-ql/guides/introduction/
+      icon: right-arrow
+      variant: primary
+    - text: API Reference
+      link: /stripe-search-ql/api/
+      icon: open-book
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="Type-safe" icon="approve-check">
+    Full TypeScript support with strict types for query construction.
+  </Card>
+  <Card title="Fluent API" icon="pencil">
+    Method chaining for readable and maintainable query building.
+  </Card>
+  <Card title="Domain-specific Builders" icon="setting">
+    Specialized builders like `customerQuery()` for Customer-specific fields.
+  </Card>
+  <Card title="Charge Templates" icon="document">
+    Pre-built query templates for common Charge search patterns.
+  </Card>
+</CardGrid>
