@@ -63,7 +63,7 @@ const query = chargeTemplates.byCurrency("usd").build();
 Templates return a `SearchQueryBuilder`, so you can chain additional conditions:
 
 ```typescript
-import { chargeTemplates, stripeQuery } from "stripe-search-ql";
+import { chargeTemplates } from "stripe-search-ql";
 
 // High-value USD charges in the last 30 days
 const failedHighValue = chargeTemplates
