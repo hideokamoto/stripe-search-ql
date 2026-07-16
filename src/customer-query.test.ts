@@ -92,5 +92,11 @@ describe("CustomerQueryBuilder", () => {
         customerQuery().phone().contains("555");
       }).toThrow();
     });
+
+    it("should toggle negation back to positive when not() is called twice", () => {
+      const query = customerQuery().phone().not().not().equals("+15551234567").build();
+
+      expect(query).toBe('phone:"+15551234567"');
+    });
   });
 });

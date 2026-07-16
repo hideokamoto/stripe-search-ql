@@ -98,7 +98,7 @@ class CustomerPhoneFieldBuilder {
   }
 
   not(): CustomerPhoneFieldBuilder {
-    return new CustomerPhoneFieldBuilder(this.customerBuilder, true);
+    return new CustomerPhoneFieldBuilder(this.customerBuilder, !this.negated);
   }
 }
 
