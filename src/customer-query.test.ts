@@ -66,4 +66,31 @@ describe("CustomerQueryBuilder", () => {
       'created>1704067200 AND email~"@example.com" AND metadata["plan"]:"premium"'
     );
   });
+
+  describe("phone field", () => {
+    it("should build a query with phone field using exact match", () => {
+      const query = customerQuery().phone().equals("+15551234567").build();
+
+      expect(query).toBe('phone:"+15551234567"');
+    });
+
+    it("should support negation on phone field", () => {
+      const query = customerQuery().phone().not().equals("+15551234567").build();
+
+      expect(query).toBe('-phone:"+15551234567"');
+    });
+
+    it("should support isNull on phone field", () => {
+      const query = customerQuery().phone().isNull().build();
+
+      expect(query).toBe("phone:null");
+    });
+
+    it("should not allow substring match (~) on phone field, since Stripe only supports exact match for phone", () => {
+      expect(() => {
+        // @ts-expect-error phone field does not support substring match; Stripe requires exact match (equals) for phone
+        customerQuery().phone().contains("555");
+      }).toThrow();
+    });
+  });
 });
