@@ -66,6 +66,43 @@ class CustomerFieldBuilder {
 }
 
 /**
+ * Field builder for Customer's phone field.
+ *
+ * Stripe Search only supports exact match (`:`) for phone; substring match (`~`)
+ * always returns "invalid query" for the whole query, so `.contains()` is
+ * intentionally not exposed here (see https://docs.stripe.com/search).
+ */
+class CustomerPhoneFieldBuilder {
+  private customerBuilder: CustomerQueryBuilder;
+  private negated: boolean;
+
+  constructor(customerBuilder: CustomerQueryBuilder, negated = false) {
+    this.customerBuilder = customerBuilder;
+    this.negated = negated;
+  }
+
+  private getBuilder() {
+    return this.negated
+      ? this.customerBuilder.builder.not("phone")
+      : this.customerBuilder.builder.field("phone");
+  }
+
+  equals(value: string | null): CustomerQueryBuilder {
+    this.getBuilder().equals(value);
+    return this.customerBuilder;
+  }
+
+  isNull(): CustomerQueryBuilder {
+    this.getBuilder().isNull();
+    return this.customerBuilder;
+  }
+
+  not(): CustomerPhoneFieldBuilder {
+    return new CustomerPhoneFieldBuilder(this.customerBuilder, !this.negated);
+  }
+}
+
+/**
  * Metadata field builder for Customer queries
  */
 class CustomerMetadataFieldBuilder {
@@ -131,10 +168,13 @@ export class CustomerQueryBuilder {
   }
 
   /**
-   * Search by phone field
+   * Search by phone field.
+   *
+   * Stripe Search only supports exact match for phone, so only `.equals()`
+   * and `.isNull()` are available (no `.contains()`).
    */
-  phone(): CustomerFieldBuilder {
-    return new CustomerFieldBuilder(this, "phone");
+  phone(): CustomerPhoneFieldBuilder {
+    return new CustomerPhoneFieldBuilder(this);
   }
 
   /**
