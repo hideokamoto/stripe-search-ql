@@ -6,8 +6,8 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "StripeSearchQL",
-      fileName: "index",
-      formats: ["es"],
+      fileName: (format) => (format === "cjs" ? "index.cjs" : "index.js"),
+      formats: ["es", "cjs"],
     },
     rollupOptions: {
       external: [],
