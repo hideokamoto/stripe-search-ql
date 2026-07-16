@@ -50,6 +50,18 @@ describe("CustomerQueryBuilder", () => {
     expect(query).toBe('-metadata["vip"]:"true"');
   });
 
+  it("should toggle negation back to positive when not() is called twice on a customer field", () => {
+    const query = customerQuery().email().not().not().equals("a@example.com").build();
+
+    expect(query).toBe('email:"a@example.com"');
+  });
+
+  it("should toggle negation back to positive when not() is called twice on a metadata field", () => {
+    const query = customerQuery().metadata("vip").not().not().equals("true").build();
+
+    expect(query).toBe('metadata["vip"]:"true"');
+  });
+
   it("should build a complex customer query", () => {
     const query = customerQuery()
       .created()

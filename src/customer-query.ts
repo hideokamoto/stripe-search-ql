@@ -61,7 +61,7 @@ class CustomerFieldBuilder {
   }
 
   not(): CustomerFieldBuilder {
-    return new CustomerFieldBuilder(this.customerBuilder, this.fieldName, true);
+    return new CustomerFieldBuilder(this.customerBuilder, this.fieldName, !this.negated);
   }
 }
 
@@ -138,7 +138,7 @@ class CustomerMetadataFieldBuilder {
   }
 
   not(): CustomerMetadataFieldBuilder {
-    return new CustomerMetadataFieldBuilder(this.customerBuilder, this.key, true);
+    return new CustomerMetadataFieldBuilder(this.customerBuilder, this.key, !this.negated);
   }
 }
 
