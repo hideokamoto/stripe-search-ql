@@ -14,4 +14,4 @@ becomes the commit subject, so it must be conventional too:
 -->
 
 - [ ] PR title is a Conventional Commit (`feat:`, `fix:`, `chore:`, ...)
-- [ ] `npm run lint`, `npm run typecheck`, and `npm test` pass locally
+- [ ] `pnpm run lint`, `pnpm run typecheck`, `pnpm run build`, and `pnpm test` pass locally

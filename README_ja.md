@@ -230,25 +230,25 @@ const customers = await stripe.customers.search({
 
 ```bash
 # 依存関係のインストール
-npm install
+pnpm install
 
 # ビルド
-npm run build
+pnpm run build
 
 # テスト
-npm test
+pnpm test
 
 # テスト（ウォッチモード）
-npm run test:watch
+pnpm run test:watch
 
 # リンター
-npm run lint
+pnpm run lint
 
 # フォーマッター
-npm run format
+pnpm run format
 
 # 型チェック
-npm run typecheck
+pnpm run typecheck
 ```
 
 ## ライセンス

@@ -230,25 +230,25 @@ const customers = await stripe.customers.search({
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Build
-npm run build
+pnpm run build
 
 # Test
-npm test
+pnpm test
 
 # Test (watch mode)
-npm run test:watch
+pnpm run test:watch
 
 # Linter
-npm run lint
+pnpm run lint
 
 # Formatter
-npm run format
+pnpm run format
 
 # Type check
-npm run typecheck
+pnpm run typecheck
 ```
 
 ## License
